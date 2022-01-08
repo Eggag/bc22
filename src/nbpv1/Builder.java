@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class Builder extends RobotPlayer {
-    static void runBuilder(RobotController rc) throws GameActionException {
+    static void runBuilder() throws GameActionException {
 
     }
 }

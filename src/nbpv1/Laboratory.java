@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class Laboratory extends RobotPlayer {
-    static void runLaboratory(RobotController rc) throws GameActionException {
+    static void runLaboratory() throws GameActionException {
 
     }
 }

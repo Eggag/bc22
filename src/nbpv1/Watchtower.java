@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class Watchtower extends RobotPlayer {
-    static void runWatchtower(RobotController rc) throws GameActionException {
+    static void runWatchtower() throws GameActionException {
 
     }
 }
