@@ -13,6 +13,16 @@ public class Miner extends RobotPlayer {
     static void tryMine() throws GameActionException {
         MapLocation me = rc.getLocation();
         int av = 0;
+        int ds = 1000000;
+        for(int i = 0; i < 59; i++){
+            int num = rc.readSharedArray(i);
+            if((num & 0b111) == 4){
+                int x = ((num >> 9) & 0b111111), y = (num >> 3) & 0b111111;
+                int rn = rc.getLocation().distanceSquaredTo(new MapLocation(x, y));
+                if(rn < ds) ds = rn;
+            }
+        }
+        boolean notClose = ds >= 35;
         for(int t = 0; t < 2; t++) {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
@@ -28,7 +38,7 @@ public class Miner extends RobotPlayer {
                     }
                     else{
                         while(rc.canMineLead(mineLocation)){
-                            if(rc.senseLead(mineLocation) == 1) break;
+                            if(rc.senseLead(mineLocation) == 1 && notClose) break;
                             rc.mineLead(mineLocation);
                         }
                     }
@@ -84,6 +94,23 @@ public class Miner extends RobotPlayer {
         if(danger != null) Navigation.goOP(danger);
     }
 
+    static void tryDie() throws GameActionException{
+        int nmMiners = rc.readSharedArray(63);
+        if(rc.getRoundNum() % 2 == 0) nmMiners = rc.readSharedArray(62);
+        if(nmMiners > 40 && rc.canSenseLocation(rc.getLocation()) && rc.senseLead(rc.getLocation()) == 0){
+            int d = 10000000;
+            for(int i = 0; i < 59; i++){
+                int num = rc.readSharedArray(i);
+                if((num & 0b111) == 3){
+                    int x = ((num >> 9) & 0b111111), y = (num >> 3) & 0b111111;
+                    int rn = rc.getLocation().distanceSquaredTo(new MapLocation(x, y));
+                    if(rn < d) d = rn;
+                }
+            }
+            if(d <= 10 && Math.abs(rng.nextInt()) % 10 == 0) rc.disintegrate(); //:clown:
+        }
+    }
+
     static void runMiner() throws GameActionException{
         if(rc.getRoundNum() % 2 == 0){
             int nm = rc.readSharedArray(63);
@@ -94,6 +121,7 @@ public class Miner extends RobotPlayer {
             rc.writeSharedArray(62, nm + 1);
         }
         canExplore = true;
+        tryDie();
         tryRun();
         tryMine();
         tryScout();

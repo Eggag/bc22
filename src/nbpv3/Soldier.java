@@ -111,7 +111,7 @@ public class Soldier extends RobotPlayer {
     }
 
     static void runSoldier() throws GameActionException {
-        if(rc.getRoundNum() % 100 == 0){
+        if(rc.getRoundNum() % 150 == 0){
             defender = false;
         }
         tryReportA();
