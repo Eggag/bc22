@@ -7,6 +7,8 @@ import java.util.Map;
 
 public class Archon extends RobotPlayer {
 
+    static int id = 0;
+
     static void build(int ind) throws GameActionException {
         RobotType rt = RobotType.MINER;
         if(ind == 1) rt = RobotType.SOLDIER;
@@ -19,18 +21,25 @@ public class Archon extends RobotPlayer {
     }
 
     static void decideBuild(int a, int b) throws GameActionException{
-        if(a < 7){
+        RobotInfo[] en = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
+        for(RobotInfo uwu : en){
+            if(rc.getType() == RobotType.SOLDIER || rc.getType() == RobotType.SAGE || rc.getType() == RobotType.WATCHTOWER){
+                build(1);
+                return;
+            }
+        }
+        if(a < 15){
             build(0);
         }
-        else if(a < 15){
+        else if(a < 25){
             if(b < a / 2) build(1);
             else build(0);
         }
-        else if(a < 25){
+        else if(a < 30){
             if(b < a) build(1);
             else build(0);
         }
-        else if(a < 30){
+        else if(a < 40){
             if(b / 2 < a) build(1);
             else build(0);
         }
@@ -40,8 +49,12 @@ public class Archon extends RobotPlayer {
         }
     }
 
+
     static void runArchon() throws GameActionException {
         if(turnCount == 1){
+            int cr = rc.readSharedArray(59);
+            id = cr;
+            rc.writeSharedArray(59, cr + 1);
             for(int i = 0; i < 60; i++){
                 int num = rc.readSharedArray(i);
                 if (num == 0) {
@@ -70,7 +83,6 @@ public class Archon extends RobotPlayer {
         else{
             rc.writeSharedArray(60, 0);
         }
-        rc.setIndicatorString("hi " + numMiner + " " + numSoldier);
-        decideBuild(numMiner, numSoldier);
+        if(rc.getRoundNum() % rc.readSharedArray(59) == id) decideBuild(numMiner, numSoldier);
     }
 }

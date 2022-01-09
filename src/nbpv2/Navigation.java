@@ -34,4 +34,21 @@ public class Navigation extends RobotPlayer {
         }
         if(bst != Direction.CENTER && rc.canMove(bst)) rc.move(bst);
     }
+
+    static void goOP(MapLocation goal) throws GameActionException {
+        Direction bst = Direction.CENTER;
+        int mx = 0;
+        for(int i = 0; i < 8; i++){
+            Direction dir = directions[i];
+            MapLocation nxt = rc.getLocation().add(dir);
+            if(rc.canMove(dir)){
+                if(goal.distanceSquaredTo(nxt) > mx){
+                    bst = dir;
+                    mx = goal.distanceSquaredTo(nxt);
+                }
+            }
+        }
+        if(bst != Direction.CENTER && rc.canMove(bst)) rc.move(bst);
+    }
+
 }

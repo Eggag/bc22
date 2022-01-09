@@ -58,7 +58,7 @@ public strictfp class RobotPlayer {
         int l = 0, r = 32;
         if(turnCount % 2 == 1){
             l = 32;
-            r = 60;
+            r = 59;
         }
         for(int t = 1; t <= 2; t++) {
             for(int i = l; i < r; i++) {
@@ -83,7 +83,7 @@ public strictfp class RobotPlayer {
             }
             for (MapLocation loc : cur) {
                 int mnDist = 1000000;
-                for (int i = 0; i < 60; i++) {
+                for (int i = 0; i < 59; i++) {
                     int num = rc.readSharedArray(i);
                     if ((num & 0b111) == t) {
                         int x = ((num >> 9) & 0b111111), y = (num >> 3) & 0b111111;
@@ -93,7 +93,7 @@ public strictfp class RobotPlayer {
                     if(mnDist <= 20) break;
                 }
                 if (mnDist > 20) {
-                    for (int i = 0; i < 60; i++) {
+                    for (int i = 0; i < 59; i++) {
                         int num = rc.readSharedArray(i);
                         if (num == 0) {
                             num = t;
