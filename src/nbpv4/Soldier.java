@@ -38,14 +38,14 @@ public class Soldier extends RobotPlayer {
             num |= (cur.location.x << 9);
             num |= (cur.location.y << 3);
             int f = 0;
-            for(int i = 0; i < maxMsg; i++){
+            for(int i = 0; i < 59; i++){
                 if(rc.readSharedArray(i) == num){
                     f = 1;
                     break;
                 }
             }
             if(f == 0){
-                for(int i = maxMsg - 1; i >= 0; i--) if(rc.readSharedArray(i) == 0){
+                for(int i = 58; i >= 0; i--) if(rc.readSharedArray(i) == 0){
                     rc.writeSharedArray(i, num);
                     break;
                 }
@@ -90,14 +90,14 @@ public class Soldier extends RobotPlayer {
                 num |= (attackGoal.x << 9);
                 num |= (attackGoal.y << 3);
                 int f = 0;
-                for(int i = 0; i < maxMsg; i++){
+                for(int i = 0; i < 59; i++){
                     if(rc.readSharedArray(i) == num){
                         f = 1;
                         break;
                     }
                 }
                 if(f == 0){
-                    for(int i = maxMsg - 1; i >= 0; i--) if(rc.readSharedArray(i) == 0){
+                    for(int i = 58; i >= 0; i--) if(rc.readSharedArray(i) == 0){
                         rc.writeSharedArray(i, num);
                         break;
                     }
@@ -112,7 +112,7 @@ public class Soldier extends RobotPlayer {
 
     static void runSoldier() throws GameActionException {
         if(turnCount == 1){
-            if(rc.getRoundNum() % 4 == 0) defender = false;
+            if(rc.getRoundNum() % 5 == 0) defender = false;
         }
         if(rc.getRoundNum() % 100 == 0){
             defender = false;
@@ -129,20 +129,32 @@ public class Soldier extends RobotPlayer {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        int helth = Integer.MAX_VALUE;
+        MapLocation bst = null;
         for(RobotInfo owo : enemies){
             if(!rc.isActionReady()) break;
             if(owo.type == RobotType.SOLDIER || owo.type == RobotType.SAGE || owo.type == RobotType.WATCHTOWER){
                 if (rc.canAttack(owo.location)) {
-                    rc.attack(owo.location);
+                    if(owo.health < helth) {
+                        helth = owo.health;
+                        bst = owo.location;
+                    }
                 }
             }
         }
+        if(bst != null) rc.attack(bst);
+        int helth1 = Integer.MAX_VALUE;
+        MapLocation bst1 = null;
         for(RobotInfo owo : enemies){
             if(!rc.isActionReady()) break;
             if (rc.canAttack(owo.location)) {
-                rc.attack(owo.location);
+                if(owo.health < helth) {
+                    helth1 = owo.health;
+                    bst1 = owo.location;
+                }
             }
         }
+        if(bst1 != null) rc.attack(bst1);
         if(defender){
             tryDefend();
         }

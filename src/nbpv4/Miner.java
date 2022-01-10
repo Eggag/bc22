@@ -90,7 +90,7 @@ public class Miner extends RobotPlayer {
         if (rc.getRoundNum() % 2 == 0) nmMiners = rc.readSharedArray(62);
         if (nmMiners > 30 && rc.canSenseLocation(rc.getLocation()) && rc.senseLead(rc.getLocation()) == 0) {
             int d = 10000000;
-            for (int i = 0; i < maxMsg; i++) {
+            for (int i = 0; i < 59; i++) {
                 int num = rc.readSharedArray(i);
                 if ((num & 0b111) == 3) {
                     int x = ((num >> 9) & 0b111111), y = (num >> 3) & 0b111111;
