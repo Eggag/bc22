@@ -13,38 +13,28 @@ public class Miner extends RobotPlayer {
     static void tryMine() throws GameActionException {
         MapLocation me = rc.getLocation();
         int av = 0;
-        int ds = 1000000;
-        for(int i = 0; i < 59; i++){
-            int num = rc.readSharedArray(i);
-            if((num & 0b111) == 4){
-                int x = ((num >> 9) & 0b111111), y = (num >> 3) & 0b111111;
-                int rn = rc.getLocation().distanceSquaredTo(new MapLocation(x, y));
-                if(rn < ds) ds = rn;
-            }
-        }
-        boolean notClose = ds >= 35;
         for(int t = 0; t < 2; t++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    MapLocation mineLocation = new MapLocation(me.x + dx, me.y + dy);
-                    if(rc.canSenseLocation(mineLocation) && (rc.senseGold(mineLocation) > 0 || rc.senseLead(mineLocation) > 1)){
-                        scouting = false;
-                        canExplore = false;
-                    }
+            MapLocation[] cur;
+            if(t == 0) cur = rc.senseNearbyLocationsWithGold(1000);
+            else cur = rc.senseNearbyLocationsWithLead(1000);
+            for(MapLocation nw : cur){
+                if(!rc.isActionReady()) break;
+                if(rc.getLocation().isAdjacentTo(nw)){
                     if(t == 0) {
-                        while(rc.canMineGold(mineLocation)){
-                            rc.mineGold(mineLocation);
+                        while(rc.canMineGold(nw)){
+                            rc.mineGold(nw);
                         }
                     }
                     else{
-                        while(rc.canMineLead(mineLocation)){
-                            if(rc.senseLead(mineLocation) == 1 && notClose) break;
-                            rc.mineLead(mineLocation);
+                        while(rc.canMineLead(nw)){
+                            if(rc.senseLead(nw) == 1) break;
+                            rc.mineLead(nw);
                         }
                     }
                 }
             }
         }
+        if(!rc.isMovementReady()) return;
         for(int t = 0; t < 2; t++){
             MapLocation[] cr;
             if(t == 0) cr = rc.senseNearbyLocationsWithGold(1000);
@@ -69,7 +59,7 @@ public class Miner extends RobotPlayer {
     }
 
     static void tryScout() throws GameActionException {
-        if(!canExplore) return;
+        if(!canExplore || !rc.isMovementReady()) return;
         if(scouting && rc.getLocation().distanceSquaredTo(scoutGoal) != 0) Navigation.go(scoutGoal);
         else{
             scoutGoal = new MapLocation((Math.abs(rng.nextInt())) % rc.getMapWidth(), (Math.abs(rng.nextInt())) % rc.getMapHeight());
@@ -79,6 +69,7 @@ public class Miner extends RobotPlayer {
     }
 
     static void tryRun() throws GameActionException{
+        if(!rc.isActionReady()) return;
         RobotInfo[] r = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
         int mn = 10000000;
         MapLocation danger = null;
@@ -94,20 +85,20 @@ public class Miner extends RobotPlayer {
         if(danger != null) Navigation.goOP(danger);
     }
 
-    static void tryDie() throws GameActionException{
+    static void tryDie() throws GameActionException {
         int nmMiners = rc.readSharedArray(63);
-        if(rc.getRoundNum() % 2 == 0) nmMiners = rc.readSharedArray(62);
-        if(nmMiners > 40 && rc.canSenseLocation(rc.getLocation()) && rc.senseLead(rc.getLocation()) == 0){
+        if (rc.getRoundNum() % 2 == 0) nmMiners = rc.readSharedArray(62);
+        if (nmMiners > 30 && rc.canSenseLocation(rc.getLocation()) && rc.senseLead(rc.getLocation()) == 0) {
             int d = 10000000;
-            for(int i = 0; i < 59; i++){
+            for (int i = 0; i < 59; i++) {
                 int num = rc.readSharedArray(i);
-                if((num & 0b111) == 3){
+                if ((num & 0b111) == 3) {
                     int x = ((num >> 9) & 0b111111), y = (num >> 3) & 0b111111;
                     int rn = rc.getLocation().distanceSquaredTo(new MapLocation(x, y));
-                    if(rn < d) d = rn;
+                    if (rn < d) d = rn;
                 }
             }
-            if(d <= 10 && Math.abs(rng.nextInt()) % 10 == 0) rc.disintegrate(); //:clown:
+            if (d <= 2 && Math.abs(rng.nextInt()) % 2 == 0) rc.disintegrate(); //:clown:
         }
     }
 
