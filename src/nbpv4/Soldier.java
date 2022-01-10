@@ -38,14 +38,14 @@ public class Soldier extends RobotPlayer {
             num |= (cur.location.x << 9);
             num |= (cur.location.y << 3);
             int f = 0;
-            for(int i = 0; i < 59; i++){
+            for(int i = 0; i < maxMsg; i++){
                 if(rc.readSharedArray(i) == num){
                     f = 1;
                     break;
                 }
             }
             if(f == 0){
-                for(int i = 58; i >= 0; i--) if(rc.readSharedArray(i) == 0){
+                for(int i = maxMsg - 1; i >= 0; i--) if(rc.readSharedArray(i) == 0){
                     rc.writeSharedArray(i, num);
                     break;
                 }
@@ -90,14 +90,14 @@ public class Soldier extends RobotPlayer {
                 num |= (attackGoal.x << 9);
                 num |= (attackGoal.y << 3);
                 int f = 0;
-                for(int i = 0; i < 59; i++){
+                for(int i = 0; i < maxMsg; i++){
                     if(rc.readSharedArray(i) == num){
                         f = 1;
                         break;
                     }
                 }
                 if(f == 0){
-                    for(int i = 58; i >= 0; i--) if(rc.readSharedArray(i) == 0){
+                    for(int i = maxMsg - 1; i >= 0; i--) if(rc.readSharedArray(i) == 0){
                         rc.writeSharedArray(i, num);
                         break;
                     }
@@ -112,9 +112,9 @@ public class Soldier extends RobotPlayer {
 
     static void runSoldier() throws GameActionException {
         if(turnCount == 1){
-            if(rc.getRoundNum() % 3 == 0) defender = false;
+            if(rc.getRoundNum() % 4 == 0) defender = false;
         }
-        if(rc.getRoundNum() % 300 == 0){
+        if(rc.getRoundNum() % 100 == 0){
             defender = false;
         }
         tryReportA();
