@@ -116,14 +116,6 @@ public class Soldier extends RobotPlayer {
     }
 
     static void runSoldier() throws GameActionException {
-        if(rc.getRoundNum() % 2 == 0){
-            int nm = rc.readSharedArray(61);
-            rc.writeSharedArray(61, nm + 1);
-        }else{
-            int nm = rc.readSharedArray(60);
-            rc.writeSharedArray(60, nm + 1);
-        }
-
         if(turnCount == 1) {
             getArchon();
             if(rc.getRoundNum() % 3 < 1) {
