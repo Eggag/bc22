@@ -12,6 +12,7 @@ public class Soldier extends RobotPlayer {
     static Direction momentum = Direction.CENTER;
     static MapLocation archonLocation;
     static boolean detached = false;
+    static int lastChange = 0;
 
     static int calculateMomentum(Direction dir) {
         // Cross product for calculating how much it deviates from momentum
@@ -33,6 +34,7 @@ public class Soldier extends RobotPlayer {
         int targetX = (message >> 4) & (0b111111);
         int targetY = (message >> 10) & (0b111111);
         target = new MapLocation(targetX,targetY);
+        lastChange = rc.getRoundNum();
     }
 
     static boolean getDetach() throws GameActionException {
@@ -47,15 +49,7 @@ public class Soldier extends RobotPlayer {
     }
 
     static void scoutBehavior() throws GameActionException {
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length > 0) {
-            MapLocation toAttack = enemies[0].location;
-            if (rc.canAttack(toAttack)) {
-                rc.attack(toAttack);
-            }
-        }
+        combat();
 
         // Also try to move randomly.
         // Actively going to the swarm direction
@@ -75,6 +69,7 @@ public class Soldier extends RobotPlayer {
 
     static void waitingSwarm() throws GameActionException {
         // Also try to move randomly.
+        combat();
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)) {
             if(rc.getLocation().add(dir).distanceSquaredTo(archonLocation) <= 20) rc.move(dir);
@@ -82,11 +77,60 @@ public class Soldier extends RobotPlayer {
         }
     }
 
+    static MapLocation findTarget() throws GameActionException {
+        for(int i = 4;i < 30;++i) {
+            int message = rc.readSharedArray(i);
+            if((message & (0b1111)) == 3 && Math.random() < 0.5) {
+                int targetX = message >> 4 & (0b111111);
+                int targetY = message >> 10 & (0b111111);
+                rc.setIndicatorString(targetX + " HEHE " + targetY);
+                return new MapLocation(targetX,targetY);
+            }
+        }
+        return rc.getLocation();
+    }
+
+    static void disband() throws GameActionException {
+        scout = true;
+        target = findTarget();
+    }
+
+    static void addEnemy(RobotInfo[] enemies) throws GameActionException {
+        int p = 4;
+        for(int i = 0;i < enemies.length;++i) {
+            if(enemies[i].team == rc.getTeam()) continue;
+            MapLocation loc = enemies[i].getLocation();
+            for(;p < 20;p++) {
+                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == 3 && Math.random() < 0.8)) {
+                    rc.writeSharedArray(p,3 + (loc.x << 4) + (loc.y << 10));
+                    break;
+                }
+            }
+        }
+    }
+
+    static void combat() throws GameActionException {
+        int radius = rc.getType().actionRadiusSquared;
+        Team opponent = rc.getTeam().opponent();
+        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        addEnemy(enemies);
+        if (enemies.length > 0) {
+            MapLocation toAttack = enemies[0].location;
+            if (rc.canAttack(toAttack)) {
+                rc.attack(toAttack);
+            }
+        }
+    }
+
+
     static double evaluateSwarm(Direction dir) throws GameActionException {
         final double targetCoefficient = -1;
         final double terrainCoefficient = -0.01;
         final double momentumCoefficient = 0.1;
         MapLocation newLocation = rc.getLocation().add(dir);
+
+        if(!rc.canMove(dir)) return -1e18;
+
         double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
@@ -99,6 +143,9 @@ public class Soldier extends RobotPlayer {
         final double terrainCoefficient = -0.01;
         final double momentumCoefficient = 0.1;
         MapLocation newLocation = rc.getLocation().add(dir);
+
+        if(!rc.canMove(dir)) return -1e18;
+
         double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
@@ -107,15 +154,7 @@ public class Soldier extends RobotPlayer {
     }
 
     static void activeSwarm() throws GameActionException {
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length > 0) {
-            MapLocation toAttack = enemies[0].location;
-            if (rc.canAttack(toAttack)) {
-                rc.attack(toAttack);
-            }
-        }
+        combat();
 
         // Actively going to the swarm direction
         double bestScore = -1e18;
@@ -136,14 +175,20 @@ public class Soldier extends RobotPlayer {
         MapLocation uwu = rc.getLocation();
         int height = rc.getMapHeight();
         int width = rc.getMapWidth();
-        if(rc.getRoundNum() % 3 == 0) {
+        double rand = Math.random();
+        if(rand < 0.33) {
             target = new MapLocation(uwu.x,height - uwu.y - 1);
-        }else if(rc.getRoundNum() % 3 == 1) {
+        }else if(rand < 0.66) {
             target = new MapLocation(width - uwu.x - 1,uwu.y);
         }else{
             target = new MapLocation(width - uwu.x - 1,height - uwu.y - 1);
         }
     }
+
+    static boolean outOfBound(MapLocation loc) {
+        return (loc.x < 0 || loc.x >= rc.getMapWidth() || loc.y < 0 || loc.y >= rc.getMapHeight());
+    }
+
 
     static void runSoldier() throws GameActionException {
         if(turnCount == 1) {
@@ -166,7 +211,7 @@ public class Soldier extends RobotPlayer {
                     increaseSize();
                 }
             }else{
-                rc.setIndicatorString("SCOUT");
+                rc.setIndicatorString("SCOUT " + target.x + " " + target.y);
             }
         }
 
@@ -180,5 +225,8 @@ public class Soldier extends RobotPlayer {
                 activeSwarm();
             }
         }
+
+        if(scout && rc.getRoundNum() - lastChange >= 20 && (rc.getLocation().distanceSquaredTo(target) < 10 || outOfBound(target))) disband();
+        if(!scout && (rc.getLocation().distanceSquaredTo(target) < 10 && rc.senseRobotAtLocation(target).getType() != RobotType.ARCHON)) disband();
     }
 }

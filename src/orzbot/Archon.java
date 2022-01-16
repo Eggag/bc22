@@ -8,16 +8,15 @@ import java.util.Map;
 public class Archon extends RobotPlayer {
 
     static int archonCnt = 0;
+    static int prevInc = 0;
     static int recentLim = 5;
     static int longerLim = 50;
     static int sumRecent = 0;
     static int sumLonger = 0;
     static int[] recentDiff = new int[recentLim + 5];
     static int[] longerDiff = new int[longerLim + 5];
-    static int sumRecentMiners = 0;
-    static int sumLongerMiners = 0;
-    static int[] recentMiners = new int[recentLim + 5];
-    static int[] longerMiners = new int[longerLim + 5];
+
+
 
     static void build(RobotType rt) throws GameActionException{
         for (int i = 0; i < 8; i++) {
@@ -30,31 +29,23 @@ public class Archon extends RobotPlayer {
     }
 
     static void decideBuild() throws GameActionException{
-        double avgRecentMiners = Math.max((double)(sumRecentMiners) / (double)(Math.min(recentLim, rc.getRoundNum())), 1.0);
-        double avgLongerMiners = Math.max((double)(sumLongerMiners) / (double)(Math.min(longerLim, rc.getRoundNum())), 1.0);
-        double recent = ((double)(sumRecent) / (double)(Math.min(recentLim, rc.getRoundNum()))) / avgRecentMiners;
-        double longer = ((double)(sumLonger) / (double)(Math.min(longerLim, rc.getRoundNum()))) / avgLongerMiners;
-        if(recent > longer) build(RobotType.MINER);
+        double recent = (double)(sumRecent) / (double)(Math.min(recentLim, rc.getRoundNum()));
+        double longer = (double)(sumLonger) / (double)(Math.min(longerLim, rc.getRoundNum()));
+        rc.setIndicatorString(recent + " " + longer);
+        if(rc.getRoundNum() % 10 < 1) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
-        rc.writeSharedArray(NUM_MINERS_IND, 0);
     }
 
     static void updateIncome() throws GameActionException{
         int lst = rc.readSharedArray(INCOME_IND);
         int inc = rc.getTeamLeadAmount(rc.getTeam()) - lst;
         if(rc.getRoundNum() == 1) inc = 0;
-        sumRecent -= recentDiff[rc.getRoundNum() % 5] - inc;
-        sumLonger -= longerDiff[rc.getRoundNum() % 50] - inc;
-        recentDiff[rc.getRoundNum() % 5] = inc;
-        longerDiff[rc.getRoundNum() % 50] = inc;
-    }
-
-    static void updateMiners() throws GameActionException{
-        int numMiners = rc.readSharedArray(NUM_MINERS_IND);
-        sumRecentMiners -= recentMiners[rc.getRoundNum() % 5] - numMiners;
-        sumLongerMiners -= longerMiners[rc.getRoundNum() % 50] - numMiners;
-        recentMiners[rc.getRoundNum() % 5] = numMiners;
-        longerMiners[rc.getRoundNum() % 50] = numMiners;
+        int incDiff = inc - prevInc;
+        sumRecent -= recentDiff[rc.getRoundNum() % 5] - incDiff;
+        sumLonger -= longerDiff[rc.getRoundNum() % 50] - incDiff;
+        recentDiff[rc.getRoundNum() % 5] = incDiff;
+        longerDiff[rc.getRoundNum() % 50] = incDiff;
+        prevInc = inc;
     }
 
     static void reportLocation() throws GameActionException{
@@ -105,7 +96,6 @@ public class Archon extends RobotPlayer {
         if(turnCount == 1) reportLocation();
         updateIncome();
         updateSwarm();
-        updateMiners();
         if(rc.getRoundNum() % rc.readSharedArray(NUM_ARCHONS_IND) == archonCnt){
             decideBuild();
         }
