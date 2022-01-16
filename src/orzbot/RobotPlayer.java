@@ -58,4 +58,10 @@ public strictfp class RobotPlayer {
             }
         }
     }
+
+    static void updateAlive(int index) throws GameActionException{
+        int nm = rc.readSharedArray(index);
+        rc.writeSharedArray(index, nm + 1);
+    }
+
 }
