@@ -26,6 +26,7 @@ public strictfp class RobotPlayer {
         Direction.SOUTHWEST,
         Direction.WEST,
         Direction.NORTHWEST,
+        Direction.CENTER,
     };
 
     @SuppressWarnings("unused")
