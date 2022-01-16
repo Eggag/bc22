@@ -30,14 +30,14 @@ public class Soldier extends RobotPlayer {
 
     static void getTarget() throws GameActionException {
         int message = rc.readSharedArray(archonID * 2);
-        int targetX = (message >> 4) & (0b11111111);
-        int targetY = (message >> 10) & (0b11111111);
+        int targetX = (message >> 4) & (0b111111);
+        int targetY = (message >> 10) & (0b111111);
         target = new MapLocation(targetX,targetY);
     }
 
     static boolean getDetach() throws GameActionException {
         int message = rc.readSharedArray(archonID * 2 + 1);
-        return ((message >> 4) & (0b11111111)) > 0;
+        return ((message >> 4) & (0b111111)) == 1;
     }
 
     static void increaseSize() throws GameActionException {
@@ -58,11 +58,19 @@ public class Soldier extends RobotPlayer {
         }
 
         // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            System.out.println("Scout moving randomly");
+        // Actively going to the swarm direction
+        double bestScore = -1e18;
+        Direction owo = Direction.CENTER;
+        for(Direction dir : directions) {
+            double uwu = evaluateScout(dir);
+            if(uwu > bestScore) {
+                bestScore = uwu;
+                owo = dir;
+            }
         }
+        rc.move(owo);
+        momentum = owo;
+        return;
     }
 
     static void waitingSwarm() throws GameActionException {
@@ -75,9 +83,21 @@ public class Soldier extends RobotPlayer {
     }
 
     static double evaluateSwarm(Direction dir) throws GameActionException {
-        final double targetCoefficient = 1;
-        final double terrainCoefficient = 1;
-        final double momentumCoefficient = 1;
+        final double targetCoefficient = -1;
+        final double terrainCoefficient = -0.01;
+        final double momentumCoefficient = 0.1;
+        MapLocation newLocation = rc.getLocation().add(dir);
+        double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
+        double terrainDifficulty = rc.senseRubble(newLocation);
+        double momentumAlignment = calculateMomentum(dir);
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
+        return score;
+    }
+
+    static double evaluateScout(Direction dir) throws GameActionException {
+        final double targetCoefficient = -1;
+        final double terrainCoefficient = -0.01;
+        final double momentumCoefficient = 0.1;
         MapLocation newLocation = rc.getLocation().add(dir);
         double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
         double terrainDifficulty = rc.senseRubble(newLocation);
@@ -87,6 +107,16 @@ public class Soldier extends RobotPlayer {
     }
 
     static void activeSwarm() throws GameActionException {
+        int radius = rc.getType().actionRadiusSquared;
+        Team opponent = rc.getTeam().opponent();
+        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        if (enemies.length > 0) {
+            MapLocation toAttack = enemies[0].location;
+            if (rc.canAttack(toAttack)) {
+                rc.attack(toAttack);
+            }
+        }
+
         // Actively going to the swarm direction
         double bestScore = -1e18;
         Direction owo = Direction.CENTER;
@@ -125,22 +155,25 @@ public class Soldier extends RobotPlayer {
         }else{
             // Initialization for swarm
             if(!scout) {
+                rc.setIndicatorString(detached + "");
+                if(getDetach()) {
+                    detached = true;
+                    getTarget();
+                }
                 if(detached) {
 
                 }else{
-                    getTarget();
                     increaseSize();
-                    if(getDetach()) {
-                        detached = true;
-                    }
                 }
+            }else{
+                rc.setIndicatorString("SCOUT");
             }
         }
 
         if(scout) {
             scoutBehavior();
         }else{
-            if(detached) {
+            if(!detached) {
                 // Waiting for recruitment
                 waitingSwarm();
             }else{

@@ -61,9 +61,38 @@ public class Archon extends RobotPlayer {
         }
     }
 
+    static void updateSwarm() throws GameActionException {
+        int id = rc.getID();
+        int message = rc.readSharedArray(id * 2 + 1);
+        int swarmSize = (message >> 10) & (0b11111111);
+        rc.setIndicatorString(message + "");
+        if((message & (1 << 4)) != 0) {
+            rc.writeSharedArray(id * 2 + 1,2);
+            message = 2;
+        }else{
+            // Threshold for detaching the swarm
+            int threshold = 5;
+            if(swarmSize > threshold) {
+                // Detach them
+                rc.writeSharedArray(id * 2 + 1,message ^ (1 << 4));
+                // Write target
+                MapLocation uwu = rc.getLocation();
+                int height = rc.getMapHeight();
+                int width = rc.getMapWidth();
+                int targetX = width - 1 - uwu.x;
+                int targetY = height - 1 - uwu.y;
+                rc.writeSharedArray(id * 2,2 + (targetX << 4) + (targetY << 10));
+                return;
+            }
+        }
+        rc.writeSharedArray(id * 2 + 1,(message | 2) & ((1 << 10) - 1));
+    }
+
+
     static void runArchon() throws GameActionException {
         if(turnCount == 1) reportLocation();
         updateIncome();
+        updateSwarm();
         if(rc.getRoundNum() % rc.readSharedArray(NUM_ARCHONS_IND) == archonCnt){
             decideBuild();
         }
