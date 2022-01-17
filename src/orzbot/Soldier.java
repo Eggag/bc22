@@ -71,8 +71,12 @@ public class Soldier extends RobotPlayer {
         // Also try to move randomly.
         combat();
         Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            if(rc.getLocation().add(dir).distanceSquaredTo(archonLocation) <= 20) rc.move(dir);
+        for (int i = 0;i < 10;++i) {
+            if(!rc.canMove(dir)) continue;
+            if(rc.getLocation().add(dir).distanceSquaredTo(archonLocation) <= 20 && rc.getLocation().add(dir).distanceSquaredTo(archonLocation) >= 4) {
+                rc.move(dir);
+                break;
+            }
             System.out.println("Staying next to the swarm randomly");
         }
     }
@@ -80,7 +84,7 @@ public class Soldier extends RobotPlayer {
     static MapLocation findTarget() throws GameActionException {
         for(int i = 4;i < 30;++i) {
             int message = rc.readSharedArray(i);
-            if((message & (0b1111)) == 3 && Math.random() < 0.5) {
+            if((message & (0b1111)) == 3 && Math.random() < 0.4) {
                 int targetX = message >> 4 & (0b111111);
                 int targetY = message >> 10 & (0b111111);
                 rc.setIndicatorString(targetX + " HEHE " + targetY);
@@ -101,7 +105,7 @@ public class Soldier extends RobotPlayer {
             if(enemies[i].team == rc.getTeam()) continue;
             MapLocation loc = enemies[i].getLocation();
             for(;p < 20;p++) {
-                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == 3 && Math.random() < 0.8)) {
+                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == 3 && Math.random() < 0.4)) {
                     rc.writeSharedArray(p,3 + (loc.x << 4) + (loc.y << 10));
                     break;
                 }
@@ -125,8 +129,8 @@ public class Soldier extends RobotPlayer {
 
     static double evaluateSwarm(Direction dir) throws GameActionException {
         final double targetCoefficient = -1;
-        final double terrainCoefficient = -0.01;
-        final double momentumCoefficient = 0.1;
+        final double terrainCoefficient = -0.02;
+        final double momentumCoefficient = 0.01;
         MapLocation newLocation = rc.getLocation().add(dir);
 
         if(!rc.canMove(dir)) return -1e18;
@@ -203,7 +207,12 @@ public class Soldier extends RobotPlayer {
                 rc.setIndicatorString(detached + "");
                 if(getDetach()) {
                     detached = true;
-                    getTarget();
+                    if(rc.getRoundNum() % 10 < 4) {
+                        getTarget();
+                    }else{
+                        target = findTarget();
+                        if(target.equals(rc.getLocation())) getTarget();
+                    }
                 }
                 if(detached) {
 

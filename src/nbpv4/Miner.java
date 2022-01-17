@@ -102,7 +102,8 @@ public class Miner extends RobotPlayer {
         }
     }
 
-    static void runMiner() throws GameActionException{
+
+    static void runMiner() throws GameActionException {
         if(rc.getRoundNum() % 2 == 0){
             int nm = rc.readSharedArray(63);
             rc.writeSharedArray(63, nm + 1);

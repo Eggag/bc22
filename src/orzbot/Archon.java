@@ -9,11 +9,13 @@ public class Archon extends RobotPlayer {
 
     static int archonCnt = 0;
     static int prevInc = 0;
-    static int recentLim = 5;
+    static int recentLim = 10;
     static int longerLim = 50;
     static int sumRecent = 0;
     static int sumLonger = 0;
+    static int sumMiners = 0;
     static int[] recentDiff = new int[recentLim + 5];
+    static int[] recentMiners = new int[recentLim + 5];
     static int[] longerDiff = new int[longerLim + 5];
 
 
@@ -25,26 +27,61 @@ public class Archon extends RobotPlayer {
                 rc.buildRobot(rt, dir);
             }
         }
+//        rc.setIndicatorString(rc.getTeamLeadAmount(rc.getTeam()) + "");
         rc.writeSharedArray(INCOME_IND, rc.getTeamLeadAmount(rc.getTeam()));
     }
 
-    static void decideBuild() throws GameActionException{
-        double recent = (double)(sumRecent) / (double)(Math.min(recentLim, rc.getRoundNum()));
-        double longer = (double)(sumLonger) / (double)(Math.min(longerLim, rc.getRoundNum()));
-        rc.setIndicatorString(recent + " " + longer);
-        if(rc.getRoundNum() % 10 < 1) build(RobotType.MINER);
+    static double threshold() {
+        int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
+        int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
+        double cnt = sumMiners / recentLim;
+        if(cnt < 10) {
+            return 5;
+        }else if(cnt < 20) {
+            return 10;
+        }else if(leadBalance < 40){
+            return 20;
+        }else if(leadBalance < 100) {
+            return 40;
+        }else {
+            return 50;
+        }
+    }
+
+    static int dynamicSwarmSize() {
+        int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
+        if(leadBalance > 200) {
+            return 10;
+        }else if(leadBalance > 400) {
+            return 20;
+        }
+        return 5;
+    }
+
+
+    static void decideBuild() throws GameActionException {
+        double cnt = sumMiners / Math.max(1,recentLim);
+        double recent = (double)(sumRecent) / Math.max(0.01,cnt);
+        double longer = (double)(sumLonger) / Math.max(0.01,cnt);
+        rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt);
+        if(cnt < 4 || recent >= threshold()) build(RobotType.MINER);
+//        if(rc.getRoundNum() % 10 < 1) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
     }
 
     static void updateIncome() throws GameActionException{
         int lst = rc.readSharedArray(INCOME_IND);
         int inc = rc.getTeamLeadAmount(rc.getTeam()) - lst;
+        rc.setIndicatorString(lst + " " + rc.getTeamLeadAmount(rc.getTeam()));
         if(rc.getRoundNum() == 1) inc = 0;
         int incDiff = inc - prevInc;
-        sumRecent -= recentDiff[rc.getRoundNum() % 5] - incDiff;
-        sumLonger -= longerDiff[rc.getRoundNum() % 50] - incDiff;
-        recentDiff[rc.getRoundNum() % 5] = incDiff;
-        longerDiff[rc.getRoundNum() % 50] = incDiff;
+        int minerCnt = rc.readSharedArray(NUM_MINERS_IND);
+        sumRecent -= recentDiff[rc.getRoundNum() % recentLim] - inc;
+        sumLonger -= longerDiff[rc.getRoundNum() % longerLim] - inc;
+        sumMiners -= recentMiners[rc.getRoundNum() % recentLim] - minerCnt;
+        recentDiff[rc.getRoundNum() % recentLim] = inc;
+        longerDiff[rc.getRoundNum() % longerLim] = inc;
+        recentMiners[rc.getRoundNum() % recentLim] = minerCnt;
         prevInc = inc;
     }
 
@@ -64,17 +101,21 @@ public class Archon extends RobotPlayer {
         }
     }
 
+    static void updateMiners() throws GameActionException {
+        rc.writeSharedArray(NUM_MINERS_IND,0);
+    }
+
     static void updateSwarm() throws GameActionException {
         int id = rc.getID();
         int message = rc.readSharedArray(id * 2 + 1);
         int swarmSize = (message >> 10) & (0b11111111);
-        rc.setIndicatorString(message + "");
+//        rc.setIndicatorString(message + "");
         if((message & (1 << 4)) != 0) {
             rc.writeSharedArray(id * 2 + 1,2);
             message = 2;
         }else{
             // Threshold for detaching the swarm
-            int threshold = 5;
+            int threshold = dynamicSwarmSize();
             if(swarmSize > threshold) {
                 // Detach them
                 rc.writeSharedArray(id * 2 + 1,message ^ (1 << 4));
@@ -99,5 +140,6 @@ public class Archon extends RobotPlayer {
         if(rc.getRoundNum() % rc.readSharedArray(NUM_ARCHONS_IND) == archonCnt){
             decideBuild();
         }
+        if(archonCnt == rc.readSharedArray(NUM_ARCHONS_IND) - 1) updateMiners();
     }
 }
