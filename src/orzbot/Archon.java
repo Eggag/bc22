@@ -151,7 +151,7 @@ public class Archon extends RobotPlayer {
         updateSwarm();
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
-            updateMiners();
         }
+        if(currentIndex == rc.getArchonCount() - 1) updateMiners();
     }
 }
