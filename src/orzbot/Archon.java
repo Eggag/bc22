@@ -34,11 +34,11 @@ public class Archon extends RobotPlayer {
     static double threshold() {
         int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
         int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
-        double cnt = sumMiners / recentLim;
+        double cnt = 1.0 * sumMiners / recentLim;
         if(cnt < 10) {
+            return 3;
+        }else if(cnt < 30) {
             return 5;
-        }else if(cnt < 20) {
-            return 10;
         }else if(leadBalance < 40){
             return 20;
         }else if(leadBalance < 100) {
@@ -50,17 +50,17 @@ public class Archon extends RobotPlayer {
 
     static int dynamicSwarmSize() {
         int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
-        if(leadBalance > 200) {
-            return 10;
-        }else if(leadBalance > 400) {
+        if(leadBalance > 400) {
             return 20;
+        }else if(leadBalance > 200) {
+            return 10;
         }
         return 5;
     }
 
 
     static void decideBuild() throws GameActionException {
-        double cnt = sumMiners / Math.max(1,recentLim);
+        double cnt = 1.0 * sumMiners / Math.max(1,recentLim);
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
         rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt);
