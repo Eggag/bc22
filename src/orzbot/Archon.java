@@ -98,8 +98,9 @@ public class Archon extends RobotPlayer {
         }
     }
 
-    static void updateMiners() throws GameActionException {
+    static void updateMinersAndSoldiers() throws GameActionException {
         rc.writeSharedArray(NUM_MINERS_IND,0);
+        rc.writeSharedArray(NUM_SOLDIERS_IND,0);
     }
 
     static void updateSwarm() throws GameActionException {
@@ -152,6 +153,6 @@ public class Archon extends RobotPlayer {
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
         }
-        if(currentIndex == rc.getArchonCount() - 1) updateMiners();
+        if(currentIndex == rc.getArchonCount() - 1) updateMinersAndSoldiers();
     }
 }

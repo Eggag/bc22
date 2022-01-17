@@ -218,6 +218,7 @@ public class Soldier extends RobotPlayer {
 
 
     static void runSoldier() throws GameActionException {
+        updateAlive(NUM_SOLDIERS_IND);
         if(turnCount == 1) {
             getArchon();
             if(rc.getRoundNum() % 3 < 1) {
