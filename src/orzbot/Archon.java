@@ -7,7 +7,6 @@ import java.util.Map;
 
 public class Archon extends RobotPlayer {
 
-    static int archonCnt = 0;
     static int prevInc = 0;
     static int recentLim = 10;
     static int longerLim = 50;
@@ -17,8 +16,8 @@ public class Archon extends RobotPlayer {
     static int[] recentDiff = new int[recentLim + 5];
     static int[] recentMiners = new int[recentLim + 5];
     static int[] longerDiff = new int[longerLim + 5];
-
-
+    static int numArchons = 0;
+    static int currentIndex = 0;
 
     static void build(RobotType rt) throws GameActionException{
         for (int i = 0; i < 8; i++) {
@@ -87,9 +86,6 @@ public class Archon extends RobotPlayer {
     }
 
     static void reportLocation() throws GameActionException{
-        int cr = rc.readSharedArray(NUM_ARCHONS_IND);
-        archonCnt = cr;
-        rc.writeSharedArray(NUM_ARCHONS_IND, cr + 1);
         for(int i = 0; i < MAX_MSG; i++){
             int num = rc.readSharedArray(i);
             if (num == 0){
@@ -133,14 +129,29 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(id * 2 + 1,(message | 2) & ((1 << 10) - 1));
     }
 
+    static void updateArchonCount() throws GameActionException{
+        if(rc.getRoundNum() % 2 == 0){
+            currentIndex = rc.readSharedArray(NUM_ARCHONS_IND);
+            numArchons = rc.readSharedArray(NUM_ARCHONS_IND_2);
+            if(rc.getArchonCount() == currentIndex + 1) rc.writeSharedArray(NUM_ARCHONS_IND_2, 0);
+            rc.writeSharedArray(NUM_ARCHONS_IND, currentIndex + 1);
+        }
+        else{
+            currentIndex = rc.readSharedArray(NUM_ARCHONS_IND_2);
+            numArchons = rc.readSharedArray(NUM_ARCHONS_IND);
+            if(rc.getArchonCount() == currentIndex + 1) rc.writeSharedArray(NUM_ARCHONS_IND, 0);
+            rc.writeSharedArray(NUM_ARCHONS_IND_2, currentIndex + 1);
+        }
+    }
 
     static void runArchon() throws GameActionException {
         if(turnCount == 1) reportLocation();
+        updateArchonCount();
         updateIncome();
         updateSwarm();
-        if(rc.getRoundNum() % rc.readSharedArray(NUM_ARCHONS_IND) == archonCnt){
+        if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
+            updateMiners();
         }
-        if(archonCnt == rc.readSharedArray(NUM_ARCHONS_IND) - 1) updateMiners();
     }
 }

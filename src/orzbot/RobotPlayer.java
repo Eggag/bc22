@@ -12,8 +12,9 @@ public strictfp class RobotPlayer {
     static int NUM_SOLDIERS_IND = 63;
     static int NUM_MINERS_IND = 62;
     static int NUM_ARCHONS_IND = 61;
-    static int INCOME_IND = 60;
-    static int MAX_MSG = 60;
+    static int NUM_ARCHONS_IND_2 = 60;
+    static int INCOME_IND = 59;
+    static int MAX_MSG = 59;
 
     static int OUR_ARCHON_CODE = 1;
 
