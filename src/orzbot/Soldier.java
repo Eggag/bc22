@@ -100,7 +100,7 @@ public class Soldier extends RobotPlayer {
     static MapLocation findTarget() throws GameActionException {
         for(int i = 4;i < 30;++i) {
             int message = rc.readSharedArray(i);
-            if((message & (0b1111)) == 3 && Math.random() < 0.4) {
+            if((message & (0b1111)) == HOTSPOT && Math.random() < 0.4) {
                 int targetX = message >> 4 & (0b111111);
                 int targetY = message >> 10 & (0b111111);
                 rc.setIndicatorString(targetX + " HEHE " + targetY);
@@ -122,8 +122,8 @@ public class Soldier extends RobotPlayer {
             if(enemies[i].team == rc.getTeam()) continue;
             MapLocation loc = enemies[i].getLocation();
             for(;p < 20;p++) {
-                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == 3 && Math.random() < 0.4)) {
-                    rc.writeSharedArray(p,3 + (loc.x << 4) + (loc.y << 10));
+                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == HOTSPOT && Math.random() < 0.4)) {
+                    rc.writeSharedArray(p,HOTSPOT + (loc.x << 4) + (loc.y << 10));
                     break;
                 }
             }
@@ -173,7 +173,7 @@ public class Soldier extends RobotPlayer {
         double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
 
         if(avoidSoldier) {
-            final double avoidanceCoefficient = -0.2;
+            final double avoidanceCoefficient = -0.3;
             score += soldierAvoidance(newLocation) * avoidanceCoefficient;
         }
 

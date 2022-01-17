@@ -14,9 +14,12 @@ public strictfp class RobotPlayer {
     static int NUM_ARCHONS_IND = 61;
     static int NUM_ARCHONS_IND_2 = 60;
     static int INCOME_IND = 59;
-    static int MAX_MSG = 59;
+    static int AGGRO_IND = 58;
+    static int MAX_MSG = 58;
 
     static int OUR_ARCHON_CODE = 1;
+    static int ARCHON_DRECTION = 2;
+    static int HOTSPOT = 3;
 
     static final Direction[] directions = {
         Direction.NORTH,
