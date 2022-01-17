@@ -57,7 +57,9 @@ public class Soldier extends RobotPlayer {
             if(enemy.getType() == RobotType.SOLDIER) {
                 score += 1.0 / enemy.location.distanceSquaredTo(loc);
             }else if(enemy.getType() == RobotType.MINER) {
-                score -= 1.0 / enemy.location.distanceSquaredTo(loc);
+                double num = 1.0;
+                if(rc.getRoundNum() <= 300) num = 3.0;
+                score -= num / enemy.location.distanceSquaredTo(loc);
             }
         }
         return score;
@@ -173,7 +175,7 @@ public class Soldier extends RobotPlayer {
         double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
 
         if(avoidSoldier) {
-            final double avoidanceCoefficient = -0.3;
+            final double avoidanceCoefficient = -0.6;
             score += soldierAvoidance(newLocation) * avoidanceCoefficient;
         }
 
@@ -221,7 +223,7 @@ public class Soldier extends RobotPlayer {
         updateAlive(NUM_SOLDIERS_IND);
         if(turnCount == 1) {
             getArchon();
-            if(rc.getRoundNum() % 3 < 1) {
+            if(rc.getRoundNum() <= 300 || rc.getRoundNum() % 3 < 1) {
                 scout = true;
                 avoidSoldier = true;
                 determineScoutTarget();

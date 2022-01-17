@@ -30,7 +30,7 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(INCOME_IND, rc.getTeamLeadAmount(rc.getTeam()));
     }
 
-    static double threshold() {
+    static double threshold() throws GameActionException{
         int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
         int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
         double cnt = 1.0 * sumMiners / recentLim;
@@ -48,14 +48,15 @@ public class Archon extends RobotPlayer {
         }
     }
 
-    static int dynamicSwarmSize() {
+    static int dynamicSwarmSize() throws GameActionException{
         int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
         if(leadBalance > 400) {
             return 20;
         }else if(leadBalance > 200) {
             return 10;
         }
-        return 10;
+        int numMiner = rc.readSharedArray(NUM_MINERS_IND);
+        return 5 + (numMiner / 5);
     }
 
 
