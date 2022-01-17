@@ -13,6 +13,8 @@ public class Soldier extends RobotPlayer {
     static MapLocation archonLocation;
     static boolean detached = false;
     static int lastChange = 0;
+    static boolean avoidSoldier = false;
+    static RobotInfo[] enemies;
 
     static int calculateMomentum(Direction dir) {
         // Cross product for calculating how much it deviates from momentum
@@ -48,6 +50,20 @@ public class Soldier extends RobotPlayer {
         rc.writeSharedArray(archonID * 2 + 1,newMessage);
     }
 
+    static double soldierAvoidance(MapLocation loc) throws GameActionException {
+        // Avoid soldier but attracted to miners
+        double score = 0;
+        for(RobotInfo enemy : enemies) {
+            if(enemy.getType() == RobotType.SOLDIER) {
+                score += 1.0 / enemy.location.distanceSquaredTo(loc);
+            }else if(enemy.getType() == RobotType.MINER) {
+                score -= 1.0 / enemy.location.distanceSquaredTo(loc);
+            }
+        }
+        return score;
+    }
+
+
     static void scoutBehavior() throws GameActionException {
         combat();
 
@@ -57,7 +73,7 @@ public class Soldier extends RobotPlayer {
         Direction owo = Direction.CENTER;
         for(Direction dir : directions) {
             double uwu = evaluateScout(dir);
-            if(uwu > bestScore) {
+            if (uwu > bestScore) {
                 bestScore = uwu;
                 owo = dir;
             }
@@ -96,10 +112,11 @@ public class Soldier extends RobotPlayer {
 
     static void disband() throws GameActionException {
         scout = true;
+        avoidSoldier = true;
         target = findTarget();
     }
 
-    static void addEnemy(RobotInfo[] enemies) throws GameActionException {
+    static void addEnemy() throws GameActionException {
         int p = 4;
         for(int i = 0;i < enemies.length;++i) {
             if(enemies[i].team == rc.getTeam()) continue;
@@ -116,8 +133,8 @@ public class Soldier extends RobotPlayer {
     static void combat() throws GameActionException {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        addEnemy(enemies);
+        enemies = rc.senseNearbyRobots(radius, opponent);
+        addEnemy();
         if (enemies.length > 0) {
             MapLocation toAttack = enemies[0].location;
             if (rc.canAttack(toAttack)) {
@@ -129,7 +146,7 @@ public class Soldier extends RobotPlayer {
 
     static double evaluateSwarm(Direction dir) throws GameActionException {
         final double targetCoefficient = -1;
-        final double terrainCoefficient = -0.02;
+        final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.01;
         MapLocation newLocation = rc.getLocation().add(dir);
 
@@ -144,7 +161,7 @@ public class Soldier extends RobotPlayer {
 
     static double evaluateScout(Direction dir) throws GameActionException {
         final double targetCoefficient = -1;
-        final double terrainCoefficient = -0.01;
+        final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.1;
         MapLocation newLocation = rc.getLocation().add(dir);
 
@@ -154,6 +171,12 @@ public class Soldier extends RobotPlayer {
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
         double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
+
+        if(avoidSoldier) {
+            final double avoidanceCoefficient = -0.2;
+            score += soldierAvoidance(newLocation) * avoidanceCoefficient;
+        }
+
         return score;
     }
 
@@ -199,6 +222,7 @@ public class Soldier extends RobotPlayer {
             getArchon();
             if(rc.getRoundNum() % 3 < 1) {
                 scout = true;
+                avoidSoldier = true;
                 determineScoutTarget();
             }
         }else{
