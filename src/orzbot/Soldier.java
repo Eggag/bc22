@@ -138,18 +138,30 @@ public class Soldier extends RobotPlayer {
         Team opponent = rc.getTeam().opponent();
         enemies = rc.senseNearbyRobots(radius, opponent);
         addEnemy();
+        int mn = 1000000;
+        MapLocation bst = null;
         for(int i = 0;i < enemies.length;++i) {
             if(enemies[i].getType() == RobotType.MINER) continue;
             MapLocation toAttack = enemies[i].location;
             if (rc.canAttack(toAttack)) {
-                rc.attack(toAttack);
+                if(enemies[i].getHealth() < mn){
+                    mn = enemies[i].getHealth();
+                    bst = toAttack;
+                }
             }
         }
-        if (enemies.length > 0) {
-            MapLocation toAttack = enemies[0].location;
-            if (rc.canAttack(toAttack)) {
-                rc.attack(toAttack);
+        if(bst != null) rc.attack(bst);
+        else {
+            for(int i = 0;i < enemies.length;++i) if(enemies[i].getType() == RobotType.MINER){
+                MapLocation toAttack = enemies[i].location;
+                if (rc.canAttack(toAttack)) {
+                    if(enemies[i].getHealth() < mn){
+                        mn = enemies[i].getHealth();
+                        bst = toAttack;
+                    }
+                }
             }
+            if(bst != null) rc.attack(bst);
         }
     }
 
