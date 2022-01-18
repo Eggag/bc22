@@ -35,12 +35,12 @@ public class Archon extends RobotPlayer {
         int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
-        double multiplier = (0.90 + (danger / 2.0)) * Math.min(100,rc.getRoundNum()) / 100;
+        double multiplier = (1 + (danger / 2.0)) * Math.min(50,rc.getRoundNum()) / 50;
 
         if(cnt < 10) {
-            return 3 * multiplier;
-        }else if(cnt < 30) {
             return 4 * multiplier;
+        }else if(cnt < 30) {
+            return 5 * multiplier;
         }else if(leadBalance < 40){
             return 10 * multiplier;
         }else if(leadBalance < 100) {
@@ -58,7 +58,7 @@ public class Archon extends RobotPlayer {
             return 10;
         }
         int numSoldiers = rc.readSharedArray(NUM_SOLDIERS_IND);
-        return 5 + (numSoldiers / 5);
+        return 4 + (numSoldiers / 6);
     }
 
 
