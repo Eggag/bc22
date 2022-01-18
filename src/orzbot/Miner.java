@@ -121,6 +121,7 @@ public class Miner extends RobotPlayer {
         addDanger();
         tryMine();
         tryScout();
+        addDanger();
     }
 
 }
