@@ -12,9 +12,9 @@ public class Soldier extends RobotPlayer {
     static Direction momentum = Direction.CENTER;
     static MapLocation archonLocation;
     static boolean detached = false;
-    static int lastChange = 0;
     static boolean avoidSoldier = false;
     static RobotInfo[] enemies;
+    static int arriveAtTarget = 10000;
 
     static int calculateMomentum(Direction dir) {
         // Cross product for calculating how much it deviates from momentum
@@ -36,7 +36,7 @@ public class Soldier extends RobotPlayer {
         int targetX = (message >> 4) & (0b111111);
         int targetY = (message >> 10) & (0b111111);
         target = new MapLocation(targetX,targetY);
-        lastChange = rc.getRoundNum();
+        arriveAtTarget = 10000;
     }
 
     static boolean getDetach() throws GameActionException {
@@ -262,8 +262,10 @@ public class Soldier extends RobotPlayer {
                 activeSwarm();
             }
         }
-
-        if(scout && rc.getRoundNum() - lastChange >= 20 && (rc.getLocation().distanceSquaredTo(target) < 10 || outOfBound(target))) disband();
+        if(rc.getLocation().distanceSquaredTo(target) < 10) {
+            arriveAtTarget = Math.min(arriveAtTarget,rc.getRoundNum());
+        }
+        if(scout && (rc.getRoundNum() - arriveAtTarget >= 20 || outOfBound(target))) disband();
         if(!scout && (rc.getLocation().distanceSquaredTo(target) < 10 && rc.senseRobotAtLocation(target).getType() != RobotType.ARCHON)) disband();
     }
 }
