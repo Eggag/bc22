@@ -2,6 +2,7 @@ package orzbot;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ public class Miner extends RobotPlayer {
 
     static boolean scouting = false;
     static MapLocation scoutGoal = null;
+    static RobotInfo[] enemies;
 
     static void tryMine() throws GameActionException {
         MapLocation me = rc.getLocation();
@@ -60,7 +62,7 @@ public class Miner extends RobotPlayer {
 
     static void tryScout() throws GameActionException {
         if(!rc.isMovementReady()) return;
-        if(scouting && rc.getLocation().distanceSquaredTo(scoutGoal) <= 2) Navigation.go(scoutGoal);
+        if(scouting && rc.getLocation().distanceSquaredTo(scoutGoal) > 2) Navigation.go(scoutGoal);
         else{
             scoutGoal = new MapLocation((Math.abs(rng.nextInt())) % rc.getMapWidth(), (Math.abs(rng.nextInt())) % rc.getMapHeight());
             scouting  = true;
@@ -68,12 +70,35 @@ public class Miner extends RobotPlayer {
         }
     }
 
+    static void addEnemy() throws GameActionException {
+        int p = 4;
+        for(int i = 0;i < enemies.length;++i) {
+            if(enemies[i].team == rc.getTeam()) continue;
+            MapLocation loc = enemies[i].getLocation();
+            for(;p < 20;p++) {
+                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == HOTSPOT && Math.random() < 0.4)) {
+                    rc.writeSharedArray(p,HOTSPOT + (loc.x << 4) + (loc.y << 10));
+                    break;
+                }
+            }
+        }
+    }
+
+    static void addDanger() throws GameActionException {
+        for(RobotInfo uwu : enemies) {
+            if(uwu.type == RobotType.SOLDIER) {
+
+            }
+        }
+    }
+
     static void tryRun() throws GameActionException{
         if(!rc.isMovementReady()) return;
-        RobotInfo[] r = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
+        enemies = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
+        addEnemy();
         int mn = 10000000;
         MapLocation danger = null;
-        for(RobotInfo uwu : r){
+        for(RobotInfo uwu : enemies){
             if(uwu.type == RobotType.SOLDIER || uwu.type == RobotType.WATCHTOWER || uwu.type == RobotType.SAGE){
                 int d = rc.getLocation().distanceSquaredTo(uwu.location);
                 if(d < mn){

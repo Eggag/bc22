@@ -55,8 +55,8 @@ public class Archon extends RobotPlayer {
         }else if(leadBalance > 200) {
             return 10;
         }
-        int numMiner = rc.readSharedArray(NUM_MINERS_IND);
-        return 5 + (numMiner / 5);
+        int numSoldiers = rc.readSharedArray(NUM_SOLDIERS_IND);
+        return 5 + (numSoldiers / 5);
     }
 
 
