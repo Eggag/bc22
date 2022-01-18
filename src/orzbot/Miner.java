@@ -85,11 +85,13 @@ public class Miner extends RobotPlayer {
     }
 
     static void addDanger() throws GameActionException {
+        int message = rc.readSharedArray(AGGRO_IND);
         for(RobotInfo uwu : enemies) {
             if(uwu.type == RobotType.SOLDIER) {
-
+                message++;
             }
         }
+        rc.writeSharedArray(AGGRO_IND,message);
     }
 
     static void tryRun() throws GameActionException{

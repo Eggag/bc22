@@ -146,6 +146,11 @@ public class Archon extends RobotPlayer {
         }
     }
 
+    static void updateDangers() throws GameActionException {
+        rc.setIndicatorString(rc.readSharedArray(AGGRO_IND) + "");
+        rc.writeSharedArray(AGGRO_IND,0);
+    }
+
     static void runArchon() throws GameActionException {
         if(turnCount == 1) reportLocation();
         updateArchonCount();
@@ -154,6 +159,10 @@ public class Archon extends RobotPlayer {
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
         }
-        if(currentIndex == rc.getArchonCount() - 1) updateMinersAndSoldiers();
+        if(currentIndex == rc.getArchonCount() - 1) {
+            // Clearing round-based data
+            updateMinersAndSoldiers();
+            updateDangers();
+        }
     }
 }
