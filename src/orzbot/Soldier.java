@@ -54,12 +54,13 @@ public class Soldier extends RobotPlayer {
         // Avoid soldier but attracted to miners
         double score = 0;
         for(RobotInfo enemy : enemies) {
+            double hp = (double)enemy.getHealth() / (double)enemy.getType().getMaxHealth(0);
             if(enemy.getType() == RobotType.SOLDIER) {
-                score += 1.0 / enemy.location.distanceSquaredTo(loc);
+                score += (hp) / (double)enemy.location.distanceSquaredTo(loc);
             }else if(enemy.getType() == RobotType.MINER) {
                 double num = 1.0;
-                if(rc.getRoundNum() <= 300) num = 3.0;
-                score -= num / enemy.location.distanceSquaredTo(loc);
+                if(rc.getRoundNum() <= 200) num = 2.0;
+                score -= num / ((double)enemy.location.distanceSquaredTo(loc) * hp);
             }
         }
         return score;
@@ -162,7 +163,7 @@ public class Soldier extends RobotPlayer {
     }
 
     static double evaluateScout(Direction dir) throws GameActionException {
-        final double targetCoefficient = -1;
+        final double targetCoefficient = -0.5;
         final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.1;
         MapLocation newLocation = rc.getLocation().add(dir);
@@ -175,7 +176,7 @@ public class Soldier extends RobotPlayer {
         double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
 
         if(avoidSoldier) {
-            final double avoidanceCoefficient = -0.6;
+            final double avoidanceCoefficient = -0.5;
             score += soldierAvoidance(newLocation) * avoidanceCoefficient;
         }
 
