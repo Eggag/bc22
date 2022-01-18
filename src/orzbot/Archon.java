@@ -35,7 +35,7 @@ public class Archon extends RobotPlayer {
         int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
-        double multiplier = (0.90 + (danger / 5.0)) * Math.max(100,rc.getRoundNum()) / 100;
+        double multiplier = (0.90 + (danger / 2.0)) * Math.min(100,rc.getRoundNum()) / 100;
 
         if(cnt < 10) {
             return 3 * multiplier;
