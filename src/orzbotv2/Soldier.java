@@ -53,13 +53,20 @@ public class Soldier extends RobotPlayer {
     static double soldierAvoidance(MapLocation loc) throws GameActionException {
         // Avoid soldier but attracted to miners
         double score = 0;
+        int rad = rc.getType().actionRadiusSquared;
         for(RobotInfo enemy : enemies) {
             double hp = (double)enemy.getHealth() / (double)enemy.getType().getMaxHealth(0);
             if(enemy.getType() == RobotType.SOLDIER) {
-                score += (hp) / (double)enemy.location.distanceSquaredTo(loc);
+                if(rc.getLocation().distanceSquaredTo(archonLocation) > 20) {
+                    if(enemy.location.distanceSquaredTo(loc) <= rad) hp /= 0.5;
+                    else hp *= 0.5;
+                    score += (hp) / (double) enemy.location.distanceSquaredTo(loc);
+                }
             }else if(enemy.getType() == RobotType.MINER) {
                 double num = 1.0;
                 if(rc.getRoundNum() <= 200) num = 2.0;
+                if(rc.getRoundNum() <= 300) num = 1.5;
+                if(enemy.location.distanceSquaredTo(loc) <= rad) hp *= 0.2;
                 score -= num / ((double)enemy.location.distanceSquaredTo(loc) * hp);
             }
         }
@@ -238,12 +245,48 @@ public class Soldier extends RobotPlayer {
         return (loc.x < 0 || loc.x >= rc.getMapWidth() || loc.y < 0 || loc.y >= rc.getMapHeight());
     }
 
+    static boolean isScout() throws GameActionException{
+        int sz = rc.getMapHeight() * rc.getMapWidth();
+        if(sz <= 1000){
+            if(rc.getRoundNum() <= 300) return true;
+            else if(rc.getRoundNum() <= 600){
+                if(rc.getRoundNum() % 2 == 0) return true;
+                else return false;
+            }
+            else{
+                if(rc.getRoundNum() % 3 == 0) return true;
+                else return false;
+            }
+        }
+        else if(sz <= 2000){
+            if(rc.getRoundNum() <= 350) return true;
+            else if(rc.getRoundNum() <= 750){
+                if(rc.getRoundNum() % 2 == 0) return true;
+                else return false;
+            }
+            else{
+                if(rc.getRoundNum() % 3 == 0) return true;
+                else return false;
+            }
+        }
+        else{
+            if(rc.getRoundNum() <= 450) return true;
+            else if(rc.getRoundNum() <= 900){
+                if(rc.getRoundNum() % 2 == 0) return true;
+                else return false;
+            }
+            else{
+                if(rc.getRoundNum() % 3 == 0) return true;
+                else return false;
+            }
+        }
+    }
 
     static void runSoldier() throws GameActionException {
         updateAlive(NUM_SOLDIERS_IND);
         if(turnCount == 1) {
             getArchon();
-            if(rc.getRoundNum() <= 300 || rc.getRoundNum() % 10 < 5) {
+            if(rc.getRoundNum() <= 300 || rc.getRoundNum() % 10 < 6){
                 scout = true;
                 avoidSoldier = true;
                 determineScoutTarget();
