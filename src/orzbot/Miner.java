@@ -90,6 +90,9 @@ public class Miner extends RobotPlayer {
             if(uwu.type == RobotType.SOLDIER) {
                 message++;
             }
+            if(uwu.type == RobotType.MINER){
+                if(Math.random() < 0.5) message++;
+            }
         }
         rc.writeSharedArray(AGGRO_IND,message);
     }
@@ -115,6 +118,7 @@ public class Miner extends RobotPlayer {
     static void runMiner() throws GameActionException{
         updateAlive(NUM_MINERS_IND);
         tryRun();
+        addDanger();
         tryMine();
         tryScout();
     }
