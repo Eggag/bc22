@@ -168,7 +168,7 @@ public class Soldier extends RobotPlayer {
 
     static double evaluateSwarm(Direction dir) throws GameActionException {
         final double targetCoefficient = -1;
-        final double terrainCoefficient = -0.03;
+        final double terrainCoefficient = -0.02;
         final double momentumCoefficient = 0.01;
         MapLocation newLocation = rc.getLocation().add(dir);
 
@@ -183,7 +183,7 @@ public class Soldier extends RobotPlayer {
 
     static double evaluateScout(Direction dir) throws GameActionException {
         final double targetCoefficient = -0.5;
-        final double terrainCoefficient = -0.03;
+        final double terrainCoefficient = -0.02;
         final double momentumCoefficient = 0.1;
         MapLocation newLocation = rc.getLocation().add(dir);
 

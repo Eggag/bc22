@@ -106,6 +106,15 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(NUM_SOLDIERS_IND,0);
     }
 
+    static void healing() throws GameActionException {
+        RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared,rc.getTeam());
+        for(RobotInfo bot : bots) {
+            if(rc.canRepair(bot.getLocation())) {
+                rc.repair(bot.getLocation());
+            }
+        }
+    }
+
     static void updateSwarm() throws GameActionException {
         int id = rc.getID();
         int message = rc.readSharedArray(id * 2 + 1);
@@ -158,6 +167,7 @@ public class Archon extends RobotPlayer {
         updateArchonCount();
         updateIncome();
         updateSwarm();
+//        healing();
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
         }

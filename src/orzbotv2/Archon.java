@@ -30,14 +30,25 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(INCOME_IND, rc.getTeamLeadAmount(rc.getTeam()));
     }
 
+    static void healing() throws GameActionException {
+        RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared,rc.getTeam());
+        for(RobotInfo bot : bots) {
+            if(rc.canRepair(bot.getLocation())) {
+                rc.repair(bot.getLocation());
+            }
+        }
+    }
+
     static double threshold() throws GameActionException{
         int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
         int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
-        double multiplier = (1 + (danger / 2.0)) * Math.min(50,rc.getRoundNum()) / 50;
+        double multiplier = (1 + (danger * 1.0)) * Math.min(50,rc.getRoundNum()) / 50;
 
         if(cnt < 10) {
+            return 3 * multiplier;
+        }else if(cnt < 20) {
             return 4 * multiplier;
         }else if(cnt < 30) {
             return 5 * multiplier;
@@ -166,5 +177,6 @@ public class Archon extends RobotPlayer {
             updateMinersAndSoldiers();
             updateDangers();
         }
+        healing();
     }
 }
