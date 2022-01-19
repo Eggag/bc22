@@ -108,11 +108,14 @@ public class Archon extends RobotPlayer {
 
     static void healing() throws GameActionException {
         RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared,rc.getTeam());
+        if(bots.length == 0) return;
+        RobotInfo bst = bots[0];
         for(RobotInfo bot : bots) {
-            if(rc.canRepair(bot.getLocation())) {
-                rc.repair(bot.getLocation());
+            if(rc.canRepair(bot.getLocation()) && bst.getHealth() < bot.getHealth() && bst.getType() == RobotType.SOLDIER) {
+                bst = bot;
             }
         }
+        rc.repair(bst.getLocation());
     }
 
     static void updateSwarm() throws GameActionException {

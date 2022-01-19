@@ -69,7 +69,7 @@ public class Archon extends RobotPlayer {
             return 10;
         }
         int numSoldiers = rc.readSharedArray(NUM_SOLDIERS_IND);
-        return 4 + (numSoldiers / 6);
+        return 1;
     }
 
 
