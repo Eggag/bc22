@@ -286,7 +286,7 @@ public class Soldier extends RobotPlayer {
         updateAlive(NUM_SOLDIERS_IND);
         if(turnCount == 1) {
             getArchon();
-            if(rc.getRoundNum() <= 300 || rc.getRoundNum() % 10 < 6){
+            if(rc.getRoundNum() <= 300 || rc.getRoundNum() % 10 < 7){
                 scout = true;
                 avoidSoldier = true;
                 determineScoutTarget();
