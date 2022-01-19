@@ -20,14 +20,7 @@ public strictfp class RobotPlayer {
     static int OUR_ARCHON_CODE = 1;
     static int ARCHON_DRECTION = 2;
     static int HOTSPOT = 3;
-
-    //some ideas:
-    //1) look into how archons select the goal for attacking
-    //2) thing I added to combat seems to have potential
-    //3) look more into micro for the swarm
-    //4) make dynamic function to decide if soldier should become a scout or swarm:
-    // - I tried that with the isScout() thingy, but it didn't seem to help much
-    //   I think it might work better if we use the number of soldiers/miners in combination with map size, as opposed to round num
+    static int ENEMY_ARCHON = 4;
 
     static final Direction[] directions = {
         Direction.NORTH,

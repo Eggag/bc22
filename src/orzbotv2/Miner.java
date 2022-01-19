@@ -15,6 +15,10 @@ public class Miner extends RobotPlayer {
     static void tryMine() throws GameActionException {
         MapLocation me = rc.getLocation();
         int av = 0;
+        boolean far = true;
+        for(RobotInfo en : enemies){
+            if(en.getType() == RobotType.ARCHON) far = false;
+        }
         for(int t = 0; t < 2; t++) {
             MapLocation[] cur;
             if(t == 0) cur = rc.senseNearbyLocationsWithGold(1000);
@@ -29,10 +33,11 @@ public class Miner extends RobotPlayer {
                     }
                     else{
                         while(rc.canMineLead(nw)){
-                            if(rc.senseLead(nw) == 1) break;
+                            if(rc.senseLead(nw) == 1 && far) break;
                             rc.mineLead(nw);
                         }
                     }
+                    scouting = false;
                 }
             }
         }
@@ -62,23 +67,68 @@ public class Miner extends RobotPlayer {
 
     static void tryScout() throws GameActionException {
         if(!rc.isMovementReady()) return;
-        if(scouting && rc.getLocation().distanceSquaredTo(scoutGoal) > 2) Navigation.go(scoutGoal);
+        if(scouting && rc.getLocation().distanceSquaredTo(scoutGoal) > 20) Navigation.go(scoutGoal);
         else{
-            scoutGoal = new MapLocation((Math.abs(rng.nextInt())) % rc.getMapWidth(), (Math.abs(rng.nextInt())) % rc.getMapHeight());
+            double rand = Math.random();
+            if(rand < 0.7) {
+                scoutGoal = new MapLocation((Math.abs(rng.nextInt())) % rc.getMapWidth(), (Math.abs(rng.nextInt())) % rc.getMapHeight());
+            }
+            else{
+                if(rc.getRoundNum() % 4 == 0){
+                    scoutGoal = new MapLocation(Math.min(rc.getMapWidth() - 1, rc.getLocation().x + 10), Math.min(rc.getMapHeight() - 1, rc.getLocation().y - 10));
+                }
+                if(rc.getRoundNum() % 4 == 1){
+                    scoutGoal = new MapLocation(Math.min(rc.getMapWidth() - 1, rc.getLocation().x + 10), Math.max(0, rc.getLocation().y - 10));
+                }
+                if(rc.getRoundNum() % 4 == 2){
+                    scoutGoal = new MapLocation(Math.max(0, rc.getLocation().x - 10), Math.min(rc.getMapHeight() - 1, rc.getLocation().y + 10));
+                }
+                else{
+                    scoutGoal = new MapLocation(Math.max(0, rc.getLocation().x - 10), Math.max(0, rc.getLocation().y - 10));
+                }
+            }
             scouting  = true;
             Navigation.go(scoutGoal);
         }
     }
 
     static void addEnemy() throws GameActionException {
-        int p = 4;
         for(int i = 0;i < enemies.length;++i) {
             if(enemies[i].team == rc.getTeam()) continue;
             MapLocation loc = enemies[i].getLocation();
-            for(;p < 20;p++) {
-                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == HOTSPOT && Math.random() < 0.4)) {
-                    rc.writeSharedArray(p,HOTSPOT + (loc.x << 4) + (loc.y << 10));
+            int f = 0;
+            for(int p1 = 4;p1 < 30;p1++) {
+                if(rc.readSharedArray(p1) == 0){
+                    rc.writeSharedArray(p1,HOTSPOT + (loc.x << 4) + (loc.y << 10));
+                    f = 1;
                     break;
+                }
+            }
+            if(f == 0) {
+                for (int p1 = 4; p1 < 30; p1++) {
+                    if (((rc.readSharedArray(p1) & (0b1111)) == HOTSPOT && Math.random() < 0.4)) {
+                        rc.writeSharedArray(p1, HOTSPOT + (loc.x << 4) + (loc.y << 10));
+                        break;
+                    }
+                }
+            }
+        }
+        for(RobotInfo en : enemies) if(en.getType() == RobotType.ARCHON){
+            MapLocation loc = en.getLocation();
+            int f = 0;
+            for(int p = 30 ;p < 50;p++) {
+                if(rc.readSharedArray(p) == 0) {
+                    rc.writeSharedArray(p,ENEMY_ARCHON + (loc.x << 4) + (loc.y << 10));
+                    f = 1;
+                    break;
+                }
+            }
+            if(f == 0) {
+                for (int p = 30; p < 50; p++) {
+                    if (((rc.readSharedArray(p) & (0b1111)) == ENEMY_ARCHON && Math.random() < 0.4)) {
+                        rc.writeSharedArray(p, ENEMY_ARCHON + (loc.x << 4) + (loc.y << 10));
+                        break;
+                    }
                 }
             }
         }
@@ -91,7 +141,7 @@ public class Miner extends RobotPlayer {
                 message++;
             }
             if(uwu.type == RobotType.MINER){
-                if(Math.random() < 0.5) message++;
+                message++;
             }
         }
         rc.writeSharedArray(AGGRO_IND,message);
@@ -112,7 +162,19 @@ public class Miner extends RobotPlayer {
                 }
             }
         }
-        if(danger != null) Navigation.goOP(danger);
+        if(danger == null) return;
+        MapLocation bst = null;
+        int sc = 0;
+        for(int i = -5; i <= 5; i++){
+            for(int j = -5; j <= 5; j++) {
+                MapLocation pos = new MapLocation(rc.getLocation().x + i, rc.getLocation().y + j);
+                if(danger.distanceSquaredTo(pos) > sc){
+                    sc = danger.distanceSquaredTo(pos);
+                    bst = pos;
+                }
+            }
+        }
+        if(bst != null) Navigation.go(bst);
     }
 
     static void runMiner() throws GameActionException{

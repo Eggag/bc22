@@ -47,20 +47,25 @@ public class Archon extends RobotPlayer {
         int opponentLeadBalance = rc.getTeamLeadAmount(rc.getTeam().opponent());
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
-        double multiplier = (1 + (danger * 3.0)) * Math.min(50,rc.getRoundNum()) / 50;
-
-        if(cnt < 8) {
+        double coef = 1.0;
+        double multiplier = (coef + (danger * 3.0)) * Math.min(50,rc.getRoundNum()) / 50;
+        if(cnt < 8){
             return 3 * multiplier;
-        }else if(cnt < 20) {
+        }
+        else if(cnt < 20) {
             return 5 * multiplier;
-        }else if(cnt < 30) {
-            return 6 * multiplier;
-        }else if(leadBalance < 40){
-            return 10 * multiplier;
-        }else if(leadBalance < 100) {
-            return 30 * multiplier;
-        }else {
-            return 50 * multiplier;
+        }
+        else if(cnt < 30) {
+            return 8 * multiplier;
+        }
+        else if(cnt < 40){
+            return 15 * multiplier;
+        }
+        else if(cnt < 50){
+            return 25 * multiplier;
+        }
+        else {
+            return 35 * multiplier;
         }
     }
 
@@ -72,8 +77,7 @@ public class Archon extends RobotPlayer {
             return 10;
         }
         int numSoldiers = rc.readSharedArray(NUM_SOLDIERS_IND);
-        return (3 + numSoldiers / 8);
-//        return 1;
+        return (3 + numSoldiers / 10);
     }
 
 
@@ -83,7 +87,6 @@ public class Archon extends RobotPlayer {
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
         rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt + " " + rc.readSharedArray(AGGRO_IND));
         if(cnt < 4 || recent >= threshold()) build(RobotType.MINER);
-//        if(rc.getRoundNum() % 10 < 1) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
     }
 

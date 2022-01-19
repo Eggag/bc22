@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class Soldier extends RobotPlayer {
     static boolean scout = false;
-    static MapLocation target;
+    static MapLocation target = null;
     static int archonID;
     static Direction momentum = Direction.CENTER;
     static MapLocation archonLocation;
@@ -54,20 +54,31 @@ public class Soldier extends RobotPlayer {
         // Avoid soldier but attracted to miners
         double score = 0;
         int rad = rc.getType().actionRadiusSquared;
+        RobotInfo[] friends = rc.senseNearbyRobots(1000, rc.getTeam());
+        int fr = 0;
+        for(RobotInfo uwu : friends){
+            if(uwu.getType() == RobotType.SOLDIER) fr++;
+        }
         for(RobotInfo enemy : enemies) {
             double hp = (double)enemy.getHealth() / (double)enemy.getType().getMaxHealth(0);
-            if(enemy.getType() == RobotType.SOLDIER) {
-                if(rc.getLocation().distanceSquaredTo(archonLocation) > 20) {
-                    if(enemy.location.distanceSquaredTo(loc) <= rad) hp /= 0.5;
-                    else hp *= 0.5;
-                    score += (hp) / (double) enemy.location.distanceSquaredTo(loc);
+            if(enemy.getType() == RobotType.SOLDIER){
+                if(rc.getLocation().distanceSquaredTo(archonLocation) <= 30) {
+                    score -= (3.0 * hp) / (double) enemy.location.distanceSquaredTo(loc);
                 }
-            }else if(enemy.getType() == RobotType.MINER) {
+                else{
+                    if(fr > 2) {
+                        score -= (hp * (double)(fr)) / (double) enemy.location.distanceSquaredTo(loc);
+                    }
+                }
+            }
+            else if(enemy.getType() == RobotType.MINER) {
                 double num = 1.0;
-                if(rc.getRoundNum() <= 200) num = 2.0;
-                if(rc.getRoundNum() <= 300) num = 1.5;
-                if(enemy.location.distanceSquaredTo(loc) <= rad) hp *= 0.2;
+                if(rc.getRoundNum() <= 300) num = 2.0;
+                if(enemy.location.distanceSquaredTo(loc) <= rad) hp *= 0.3;
                 score -= num / ((double)enemy.location.distanceSquaredTo(loc) * hp);
+            }
+            else if(enemy.getType() == RobotType.ARCHON){
+                score -= 10;
             }
         }
         return score;
@@ -108,33 +119,98 @@ public class Soldier extends RobotPlayer {
     }
 
     static MapLocation findTarget() throws GameActionException {
+        double rand1 = Math.random();
+        if(rand1 < 0.5){
+            //we try to find an archon to go to
+            for(int p = 30; p < 50; p++){
+                int num = rc.readSharedArray(p);
+                if((num & (0b1111)) == ENEMY_ARCHON){
+                    int targetX = num >> 4 & (0b111111);
+                    int targetY = num >> 10 & (0b111111);
+                    target = new MapLocation(targetX, targetY);
+                    if(Math.random() < 0.5) break;
+                }
+            }
+            if(target != null) return target;
+        }
+        MapLocation bst = null;
+        int mn = 100000;
+        MapLocation[] hot = new MapLocation[30];
+        int ind = 0;
         for(int i = 4;i < 30;++i) {
             int message = rc.readSharedArray(i);
-            if((message & (0b1111)) == HOTSPOT && Math.random() < 0.4) {
+            if ((message & (0b1111)) == HOTSPOT) {
                 int targetX = message >> 4 & (0b111111);
                 int targetY = message >> 10 & (0b111111);
-                rc.setIndicatorString(targetX + " HEHE " + targetY);
-                return new MapLocation(targetX,targetY);
+                MapLocation owo = new MapLocation(targetX, targetY);
+                hot[ind++] = owo;
             }
         }
+        for(int i = 4;i < 30;++i) {
+            int message = rc.readSharedArray(i);
+            if((message & (0b1111)) == HOTSPOT) {
+                int targetX = message >> 4 & (0b111111);
+                int targetY = message >> 10 & (0b111111);
+                MapLocation loc = new MapLocation(targetX, targetY);
+                int sur = 0;
+                for(int j = 0; j < ind; j++){
+                    if(hot[j].distanceSquaredTo(loc) <= 50) sur++;
+                }
+                int score = rc.getLocation().distanceSquaredTo(loc) - 3 * sur;
+                if(score < mn){
+                    mn = score;
+                    bst = loc;
+                }
+            }
+        }
+        if(bst != null) return bst;
         return rc.getLocation();
     }
 
     static void disband() throws GameActionException {
         scout = true;
         avoidSoldier = true;
+        target = null;
         target = findTarget();
     }
 
     static void addEnemy() throws GameActionException {
-        int p = 4;
         for(int i = 0;i < enemies.length;++i) {
             if(enemies[i].team == rc.getTeam()) continue;
             MapLocation loc = enemies[i].getLocation();
-            for(;p < 20;p++) {
-                if(rc.readSharedArray(p) == 0 || ((rc.readSharedArray(p) & (0b1111)) == HOTSPOT && Math.random() < 0.4)) {
-                    rc.writeSharedArray(p,HOTSPOT + (loc.x << 4) + (loc.y << 10));
+            int f = 0;
+            for(int p1 = 4;p1 < 30;p1++) {
+                if(rc.readSharedArray(p1) == 0){
+                    rc.writeSharedArray(p1,HOTSPOT + (loc.x << 4) + (loc.y << 10));
+                    f = 1;
                     break;
+                }
+            }
+            if(f == 0) {
+                for (int p1 = 4; p1 < 30; p1++) {
+                    if (((rc.readSharedArray(p1) & (0b1111)) == HOTSPOT && Math.random() < 0.4)) {
+                        rc.writeSharedArray(p1, HOTSPOT + (loc.x << 4) + (loc.y << 10));
+                        break;
+                    }
+                }
+            }
+        }
+        for(RobotInfo en : enemies) if(en.getType() == RobotType.ARCHON){
+            MapLocation loc = en.getLocation();
+            int f = 0;
+            for(int p = 30 ;p < 50;p++) {
+                if(rc.readSharedArray(p) == 0) {
+                    rc.writeSharedArray(p,ENEMY_ARCHON + (loc.x << 4) + (loc.y << 10));
+                    f = 1;
+                    break;
+                }
+            }
+            if(f == 0) {
+                for (int p = 30; p < 50; p++) {
+                    if (((rc.readSharedArray(p) & (0b1111)) == ENEMY_ARCHON && Math.random() < 0.4)) {
+                        rc.writeSharedArray(p, ENEMY_ARCHON + (loc.x << 4) + (loc.y << 10));
+                        break;
+                    }
                 }
             }
         }
@@ -148,7 +224,7 @@ public class Soldier extends RobotPlayer {
         int mn = 1000000;
         MapLocation bst = null;
         for(int i = 0;i < enemies.length;++i) {
-            if(enemies[i].getType() == RobotType.MINER) continue;
+            if(enemies[i].getType() != RobotType.SOLDIER) continue;
             MapLocation toAttack = enemies[i].location;
             if (rc.canAttack(toAttack)) {
                 if(enemies[i].getHealth() < mn){
@@ -159,6 +235,11 @@ public class Soldier extends RobotPlayer {
         }
         if(bst != null) rc.attack(bst);
         else {
+            for(RobotInfo en : enemies){
+                if(en.getType() == RobotType.ARCHON){
+                    if(rc.canAttack(en.location)) rc.attack(en.location);
+                }
+            }
             for(int i = 0;i < enemies.length;++i) if(enemies[i].getType() == RobotType.MINER){
                 MapLocation toAttack = enemies[i].location;
                 if (rc.canAttack(toAttack)) {
@@ -231,6 +312,20 @@ public class Soldier extends RobotPlayer {
         MapLocation uwu = rc.getLocation();
         int height = rc.getMapHeight();
         int width = rc.getMapWidth();
+        double rand1 = Math.random();
+        if(rand1 < 0.7){
+            //we try to find an archon to go to
+            for(int p = 30; p < 50; p++){
+                int num = rc.readSharedArray(p);
+                if((num & (0b1111)) == ENEMY_ARCHON){
+                    int targetX = num >> 4 & (0b111111);
+                    int targetY = num >> 10 & (0b111111);
+                    target = new MapLocation(targetX, targetY);
+                    if(Math.random() < 0.3) break;
+                }
+            }
+            if(target != null) return;
+        }
         double rand = Math.random();
         if(rand < 0.33) {
             target = new MapLocation(uwu.x,height - uwu.y - 1);
@@ -250,33 +345,33 @@ public class Soldier extends RobotPlayer {
         if(sz <= 1000){
             if(rc.getRoundNum() <= 300) return true;
             else if(rc.getRoundNum() <= 600){
-                if(rc.getRoundNum() % 2 == 0) return true;
+                if(rc.getRoundNum() % 10 <= 6) return true;
                 else return false;
             }
             else{
-                if(rc.getRoundNum() % 3 == 0) return true;
+                if(rc.getRoundNum() % 10 <= 4) return true;
                 else return false;
             }
         }
         else if(sz <= 2000){
             if(rc.getRoundNum() <= 350) return true;
-            else if(rc.getRoundNum() <= 750){
-                if(rc.getRoundNum() % 2 == 0) return true;
+            else if(rc.getRoundNum() <= 700){
+                if(rc.getRoundNum() % 10 <= 6) return true;
                 else return false;
             }
             else{
-                if(rc.getRoundNum() % 3 == 0) return true;
+                if(rc.getRoundNum() % 10 <= 4) return true;
                 else return false;
             }
         }
         else{
             if(rc.getRoundNum() <= 450) return true;
-            else if(rc.getRoundNum() <= 900){
-                if(rc.getRoundNum() % 2 == 0) return true;
+            else if(rc.getRoundNum() <= 800){
+                if(rc.getRoundNum() % 10 <= 6) return true;
                 else return false;
             }
             else{
-                if(rc.getRoundNum() % 3 == 0) return true;
+                if(rc.getRoundNum() % 10 <= 4) return true;
                 else return false;
             }
         }
@@ -286,7 +381,7 @@ public class Soldier extends RobotPlayer {
         updateAlive(NUM_SOLDIERS_IND);
         if(turnCount == 1) {
             getArchon();
-            if(rc.getRoundNum() <= 300 || rc.getRoundNum() % 10 < 7){
+            if(isScout()){
                 scout = true;
                 avoidSoldier = true;
                 determineScoutTarget();
@@ -327,7 +422,39 @@ public class Soldier extends RobotPlayer {
         if(rc.getLocation().distanceSquaredTo(target) < 10) {
             arriveAtTarget = Math.min(arriveAtTarget,rc.getRoundNum());
         }
-        if(scout && (rc.getRoundNum() - arriveAtTarget >= 20 || outOfBound(target))) disband();
-        if(!scout && (rc.getLocation().distanceSquaredTo(target) < 10 && rc.senseRobotAtLocation(target).getType() != RobotType.ARCHON)) disband();
+        for(int p = 30; p < 50; p++){
+            int num = rc.readSharedArray(p);
+            if((num & (0b1111)) == ENEMY_ARCHON){
+                int targetX = num >> 4 & (0b111111);
+                int targetY = num >> 10 & (0b111111);
+                MapLocation loc = new MapLocation(targetX, targetY);
+                if(rc.canSenseLocation(loc)){
+                    RobotInfo r = rc.senseRobotAtLocation(loc);
+                    if(r == null || (r.getType() != RobotType.ARCHON || r.getTeam() != rc.getTeam().opponent())){
+                        rc.writeSharedArray(p, 0);
+                    }
+                }
+            }
+        }
+        if(scout && rc.getLocation().distanceSquaredTo(target) <= 5){
+            int f = 0;
+            for(RobotInfo en : enemies){
+                if(en.getType() == RobotType.ARCHON){
+                    target = en.location;
+                    f = 1;
+                }
+            }
+            if(f == 0) disband();
+        }
+        if(!scout && (rc.getLocation().distanceSquaredTo(target) < 10)){
+            int f = 0;
+            for(RobotInfo en : enemies){
+                if(en.getType() == RobotType.ARCHON){
+                    target = en.location;
+                    f = 1;
+                }
+            }
+            if(f == 0) disband();
+        }
     }
 }
