@@ -38,7 +38,8 @@ public class Soldier extends RobotPlayer {
         }
     }
 
-    static boolean findLeader() throws GameActionException {
+    static boolean merge() throws GameActionException {
+        int originalIndex = SwarmInfo.index;
         int thresholdDistSquared = 20;
         int best = 1000000000;
         int bestIndex = -1;
@@ -46,7 +47,31 @@ public class Soldier extends RobotPlayer {
         for(int i = 0;i < 29;i += 2) {
             SwarmInfo.index = i;
             SwarmInfo.get();
-            if(SwarmInfo.mode == 0) continue;
+            if(SwarmInfo.mode != 1 || i == originalIndex) continue;
+            int dist = SwarmInfo.leader.distanceSquaredTo(loc);
+            if(dist < thresholdDistSquared && dist < best) {
+                best = dist;
+                bestIndex = i;
+            }
+        }
+        if(bestIndex != -1) {
+            SwarmInfo.resignWithNewLeader(best);
+            return true;
+        }
+        SwarmInfo.index = originalIndex;
+        return false;
+    }
+
+    static boolean findLeader() throws GameActionException {
+        int thresholdDistSquared = 20;
+        int thresholdSwarmSize = 10;
+        int best = 1000000000;
+        int bestIndex = -1;
+        MapLocation loc = rc.getLocation();
+        for(int i = 0;i < 29;i += 2) {
+            SwarmInfo.index = i;
+            SwarmInfo.get();
+            if(SwarmInfo.mode != 1 || SwarmInfo.size >= thresholdSwarmSize) continue;
             int dist = SwarmInfo.leader.distanceSquaredTo(loc);
             if(dist < thresholdDistSquared && dist < best) {
                 best = dist;
@@ -56,6 +81,8 @@ public class Soldier extends RobotPlayer {
         SwarmInfo.index = bestIndex;
         if(bestIndex == -1) return false;
         SwarmInfo.get();
+        SwarmInfo.size++;
+        SwarmInfo.write();
         return true;
     }
 
@@ -72,22 +99,27 @@ public class Soldier extends RobotPlayer {
         return false;
     }
 
-    static void resignate() throws GameActionException {
-        SwarmInfo.clear();
-        timer = 30;
-        state = STATE.FOLLOWER;
-    }
+
 
     static void leader() throws GameActionException {
         SwarmInfo.get();
         if(SwarmInfo.mode == 2) {
-            resignate();
+            SwarmInfo.clear();
+            timer = 20;
+            state = STATE.SCOUT;
+            return;
+        }else if(SwarmInfo.mode == 3) {
+            int newLeader = SwarmInfo.getNewLeader();
+            rc.setIndicatorString("RESIGNING FOR MERGING");
+            SwarmInfo.clear();
+            timer = 30;
+            state = STATE.FOLLOWER;
+            SwarmInfo.index = newLeader;
             return;
         }
         if(SwarmInfo.size > 1) {
             // Reset resignation timer
             timer = 10;
-            return;
         }
 
         if(target == null) target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
@@ -96,17 +128,24 @@ public class Soldier extends RobotPlayer {
         SwarmInfo.attack = target;
         SwarmInfo.size = 1;
         SwarmInfo.write();
+
+        merge();
     }
 
     static void follower() throws GameActionException {
         SwarmInfo.get();
-        SwarmInfo.size++;
-        SwarmInfo.write();
         if(SwarmInfo.index == -1) {
             // Needs to find a swarm
             transformation();
         }else{
+            if(SwarmInfo.mode == 3) {
+                // Merging mode!
+                SwarmInfo.index = SwarmInfo.getNewLeader();
+                SwarmInfo.get();
+            }
             // Go towards leader
+            SwarmInfo.size++;
+            SwarmInfo.write();
             Navigation.go(SwarmInfo.leader);
             rc.setIndicatorString("FOLLOWER OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y);
             // Reset timer
@@ -133,8 +172,8 @@ public class Soldier extends RobotPlayer {
     static void runSoldier() throws GameActionException {
         timer--;
         if(state == STATE.LEADER) {
-            leader();
             rc.setIndicatorString("LEADER");
+            leader();
             if(timer < 0) {
                 SwarmInfo.mode = 2;
                 SwarmInfo.write();

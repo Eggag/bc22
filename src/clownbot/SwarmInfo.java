@@ -34,4 +34,16 @@ public class SwarmInfo extends RobotPlayer {
         index = -1;
     }
 
+    static int getNewLeader() throws GameActionException {
+        if(mode == 3) {
+            return rc.readSharedArray(index);
+        }
+        return -1;
+    }
+
+    static void resignWithNewLeader(int ind) throws GameActionException {
+        rc.writeSharedArray(index,ind);
+        rc.writeSharedArray(index + 1,3 << 14);
+    }
+
 }
