@@ -34,14 +34,15 @@ public class Navigation extends RobotPlayer {
         MapLocation uwu = rc.getLocation();
         for(int i = -maxVis;i <= maxVis;++i) {
             for(int j = -maxVis;j <= maxVis;++j) {
-                rc.setIndicatorString("STAGE 0 " + i + " " + j);
+//                rc.setIndicatorString("STAGE 0 " + i + " " + j);
                 dist[i + maxVis][j + maxVis] = 100000000;
                 MapLocation owo = new MapLocation(uwu.x + i,uwu.y + j);
                 if(owo.distanceSquaredTo(uwu) <= maxVisSquared && rc.onTheMap(owo)) {
-                    map[i + maxVis][j + maxVis] = 10 + rc.senseRubble(owo);
-                    rubbleAverage += map[i + maxVis][j + maxVis];
+                    int r = rc.senseRubble(owo);
+                    map[i + maxVis][j + maxVis] = 10 + r;
+                    rubbleAverage += 10 + r;
                     rubbleCnt++;
-                    allRubbles[map[i + maxVis][j + maxVis]] = 1;
+                    allRubbles[r] = 1;
                 }else{
                     map[i + maxVis][j + maxVis] = 100000000;
                 }
