@@ -12,9 +12,11 @@ public class Soldier extends RobotPlayer {
     static STATE state;
     static MODE mode;
 
-    static int timer = 0;
+    static int timer = 20;
 
-    static final Random rng = new Random(6147);
+    static final Random rng = new Random();
+
+    static MapLocation target = null;
 
     static void scout() throws GameActionException {
         // Try to attack someone
@@ -70,9 +72,25 @@ public class Soldier extends RobotPlayer {
         return false;
     }
 
+    static void resignate() throws GameActionException {
+        SwarmInfo.clear();
+        timer = 30;
+        state = STATE.FOLLOWER;
+    }
+
     static void leader() throws GameActionException {
         SwarmInfo.get();
-        MapLocation target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
+        if(SwarmInfo.mode == 2) {
+            resignate();
+            return;
+        }
+        if(SwarmInfo.size > 1) {
+            // Reset resignation timer
+            timer = 10;
+            return;
+        }
+
+        if(target == null) target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
         Navigation.go(target);
         SwarmInfo.leader = rc.getLocation();
         SwarmInfo.attack = target;
@@ -82,40 +100,55 @@ public class Soldier extends RobotPlayer {
 
     static void follower() throws GameActionException {
         SwarmInfo.get();
+        SwarmInfo.size++;
+        SwarmInfo.write();
         if(SwarmInfo.index == -1) {
             // Needs to find a swarm
             transformation();
         }else{
             // Go towards leader
             Navigation.go(SwarmInfo.leader);
+            rc.setIndicatorString("FOLLOWER OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y);
+            // Reset timer
+            timer = 30;
         }
     }
 
     static void transformation() throws GameActionException {
         rc.setIndicatorString("TRANSFORMING!");
         if(findLeader()) {
+            timer = 30;
             state = STATE.FOLLOWER;
         }else{
             if(becomeLeader()) {
-                rc.setIndicatorString("LEADER!");
-               state = STATE.LEADER;
+                timer = 10;
+                state = STATE.LEADER;
             }else{
+                timer = 20;
                 state = STATE.SCOUT;
             }
         }
     }
 
     static void runSoldier() throws GameActionException {
+        timer--;
         if(state == STATE.LEADER) {
             leader();
             rc.setIndicatorString("LEADER");
+            if(timer < 0) {
+                SwarmInfo.mode = 2;
+                SwarmInfo.write();
+            }
         }else if(state == STATE.FOLLOWER) {
-            follower();
             rc.setIndicatorString("FOLLOWER");
+            follower();
+            if(timer < 0) {
+                timer = 20;
+                state = STATE.SCOUT;
+            }
         }else{
             scout();
             rc.setIndicatorString("SCOUT");
-            timer--;
             if(timer < 0) {
                 transformation();
             }
