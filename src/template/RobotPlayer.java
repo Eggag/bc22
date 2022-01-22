@@ -1,4 +1,4 @@
-package orzbotv2;
+package template;
 
 import battlecode.common.*;
 import java.util.Random;
@@ -6,36 +6,16 @@ import java.util.Random;
 public strictfp class RobotPlayer {
     static RobotController rc;
 
-    static int turnCount = 0;
-    static final Random rng = new Random();
-
-    static int NUM_SOLDIERS_IND = 63;
-    static int NUM_MINERS_IND = 62;
-    static int NUM_ARCHONS_IND = 61;
-    static int NUM_ARCHONS_IND_2 = 60;
-    static int INCOME_IND = 59;
-    static int AGGRO_IND = 58;
-    static int NUM_ENEMY_MINERS_IND = 57;
-    static int NUM_ENEMY_MINERS_IND_2 = 56;
-    static int NUM_SOLDIERS_IND_2 = 55;
-    static int MAX_MSG = 555;
-
-
-    static int OUR_ARCHON_CODE = 1;
-    static int ARCHON_DRECTION = 2;
-    static int HOTSPOT = 3;
-    static int ENEMY_ARCHON = 4;
-
     static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
-        Direction.CENTER,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
+            Direction.CENTER,
     };
 
     @SuppressWarnings("unused")
@@ -66,11 +46,6 @@ public strictfp class RobotPlayer {
                 Clock.yield();
             }
         }
-    }
-
-    static void updateAlive(int index) throws GameActionException{
-        int nm = rc.readSharedArray(index);
-        rc.writeSharedArray(index, nm + 1);
     }
 
 }

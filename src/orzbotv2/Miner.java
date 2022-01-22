@@ -94,7 +94,9 @@ public class Miner extends RobotPlayer {
 
     static void addEnemy() throws GameActionException {
         for(int i = 0;i < enemies.length;++i) {
-            if(enemies[i].team == rc.getTeam()) continue;
+            if(enemies[i].getType() == RobotType.MINER) {
+                rc.writeSharedArray(NUM_ENEMY_MINERS_IND,rc.readSharedArray(NUM_ENEMY_MINERS_IND) + 1);
+            }
             MapLocation loc = enemies[i].getLocation();
             int f = 0;
             for(int p1 = 4;p1 < 30;p1++) {

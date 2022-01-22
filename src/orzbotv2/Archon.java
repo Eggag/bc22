@@ -48,7 +48,11 @@ public class Archon extends RobotPlayer {
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
         double coef = 1.0;
-        double multiplier = (coef + (danger * 3.0)) * Math.min(50,rc.getRoundNum()) / 50;
+        double multiplier = (coef + (danger * 1.5)) * Math.min(50,rc.getRoundNum()) / 50;
+        boolean rich = leadBalance > 400;
+        if(rich) {
+            return 100;
+        }
         if(cnt < 8){
             return 3 * multiplier;
         }
@@ -71,13 +75,8 @@ public class Archon extends RobotPlayer {
 
     static int dynamicSwarmSize() throws GameActionException{
         int leadBalance = rc.getTeamLeadAmount(rc.getTeam());
-        if(leadBalance > 400) {
-            return 20;
-        }else if(leadBalance > 200) {
-            return 10;
-        }
         int numSoldiers = rc.readSharedArray(NUM_SOLDIERS_IND);
-        return (3 + numSoldiers / 10);
+        return 5 + (numSoldiers / 5);
     }
 
 
@@ -120,6 +119,7 @@ public class Archon extends RobotPlayer {
     }
 
     static void updateMinersAndSoldiers() throws GameActionException {
+        rc.writeSharedArray(NUM_SOLDIERS_IND,rc.readSharedArray(NUM_SOLDIERS_IND));
         rc.writeSharedArray(NUM_MINERS_IND,0);
         rc.writeSharedArray(NUM_SOLDIERS_IND,0);
     }
@@ -171,6 +171,11 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(AGGRO_IND,0);
     }
 
+    static void updateEnemyMinerCount() throws GameActionException {
+        rc.writeSharedArray(NUM_ENEMY_MINERS_IND_2,rc.readSharedArray(NUM_ENEMY_MINERS_IND));
+        rc.writeSharedArray(NUM_ENEMY_MINERS_IND,0);
+    }
+
     static void runArchon() throws GameActionException {
         if(turnCount == 1) reportLocation();
         updateArchonCount();
@@ -183,6 +188,7 @@ public class Archon extends RobotPlayer {
             // Clearing round-based data
             updateMinersAndSoldiers();
             updateDangers();
+            updateEnemyMinerCount();
         }
         healing();
     }

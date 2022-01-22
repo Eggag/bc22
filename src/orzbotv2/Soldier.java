@@ -14,6 +14,10 @@ public class Soldier extends RobotPlayer {
     static boolean detached = false;
     static boolean avoidSoldier = false;
     static RobotInfo[] enemies;
+    static RobotInfo[] teammates;
+    static int dlbLen = 4;
+    static MapLocation[] dontLookBack = new MapLocation[dlbLen];
+    static int dlbInd = 0;
     static int arriveAtTarget = 10000;
 
     static int calculateMomentum(Direction dir) {
@@ -37,6 +41,18 @@ public class Soldier extends RobotPlayer {
         int targetY = (message >> 10) & (0b111111);
         target = new MapLocation(targetX,targetY);
         arriveAtTarget = 10000;
+    }
+
+    static double dontLookBackFactor(MapLocation loc) throws GameActionException {
+        for(int i = 0;i < dlbLen;++i) {
+            if(loc.equals(dontLookBack[i])) return 1;
+        }
+        return 0;
+    }
+
+    static void updateDontLookBack() {
+        dontLookBack[dlbInd] = rc.getLocation();
+        dlbInd = (1 + dlbInd) % dlbLen;
     }
 
     static boolean getDetach() throws GameActionException {
@@ -101,6 +117,7 @@ public class Soldier extends RobotPlayer {
         }
         rc.move(owo);
         momentum = owo;
+        updateDontLookBack();
         return;
     }
 
@@ -176,7 +193,9 @@ public class Soldier extends RobotPlayer {
 
     static void addEnemy() throws GameActionException {
         for(int i = 0;i < enemies.length;++i) {
-            if(enemies[i].team == rc.getTeam()) continue;
+            if(enemies[i].getType() == RobotType.MINER) {
+                rc.writeSharedArray(NUM_ENEMY_MINERS_IND,rc.readSharedArray(NUM_ENEMY_MINERS_IND) + 1);
+            }
             MapLocation loc = enemies[i].getLocation();
             int f = 0;
             for(int p1 = 4;p1 < 30;p1++) {
@@ -220,6 +239,7 @@ public class Soldier extends RobotPlayer {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         enemies = rc.senseNearbyRobots(radius, opponent);
+        teammates = rc.senseNearbyRobots(rc.getType().visionRadiusSquared,rc.getTeam());
         addEnemy();
         int mn = 1000000;
         MapLocation bst = null;
@@ -258,6 +278,8 @@ public class Soldier extends RobotPlayer {
         final double targetCoefficient = -1;
         final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.01;
+        final double cohesionCoefficient = 0;
+        final double dontLookBackCoefficient = -100;
         MapLocation newLocation = rc.getLocation().add(dir);
 
         if(!rc.canMove(dir)) return -1e18;
@@ -265,7 +287,7 @@ public class Soldier extends RobotPlayer {
         double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
-        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient + cohesionCoefficient * cohesionFactor(newLocation) + dontLookBackCoefficient * dontLookBackFactor(newLocation);
         return score;
     }
 
@@ -273,6 +295,8 @@ public class Soldier extends RobotPlayer {
         final double targetCoefficient = -0.5;
         final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.1;
+        final double cohesionCoefficient = 0;
+        final double dontLookBackCoefficient = -100;
         MapLocation newLocation = rc.getLocation().add(dir);
 
         if(!rc.canMove(dir)) return -1e18;
@@ -280,11 +304,13 @@ public class Soldier extends RobotPlayer {
         double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
-        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient + dontLookBackCoefficient * dontLookBackFactor(newLocation);
 
         if(avoidSoldier) {
             final double avoidanceCoefficient = -0.5;
             score += soldierAvoidance(newLocation) * avoidanceCoefficient;
+        }else{
+            score += cohesionCoefficient * cohesionFactor(newLocation);
         }
 
         return score;
@@ -305,6 +331,7 @@ public class Soldier extends RobotPlayer {
         }
         rc.move(owo);
         momentum = owo;
+        updateDontLookBack();
         return;
     }
 
@@ -376,6 +403,25 @@ public class Soldier extends RobotPlayer {
             }
         }
     }
+
+    static double cohesionFactor(MapLocation loc) {
+        if(true) return 0;
+        double score = 0;
+        for(int i = 0;i < teammates.length;++i) {
+            score += 1.0 / Math.max(1,teammates[i].getLocation().distanceSquaredTo(loc));
+        }
+        score /= Math.max(1,teammates.length);
+        return score;
+    }
+
+    static double scoutRatio() throws GameActionException {
+        if(rc.getRoundNum() < 200) return 1;
+        int numOfEnemyMiners = rc.readSharedArray(NUM_ENEMY_MINERS_IND_2);
+        int numOfSoldiers = rc.readSharedArray((NUM_SOLDIERS_IND));
+        double ratio = numOfEnemyMiners / rc.readSharedArray(NUM_SOLDIERS_IND_2);
+        return ratio;
+    }
+
 
     static void runSoldier() throws GameActionException {
         updateAlive(NUM_SOLDIERS_IND);
