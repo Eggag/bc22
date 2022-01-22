@@ -20,7 +20,7 @@ public class SwarmInfo extends RobotPlayer {
         mode = (message >> 30) & (0b11);
     }
 
-    static void write() throws  GameActionException {
+    static void write() throws GameActionException {
         int newMessage = size | (leader.x << 6) | (leader.y << 12) | (attack.x << 18) | (attack.y << 24) | (mode << 30);
         rc.writeSharedArray(index,newMessage & (0b1111111111111111));
         rc.writeSharedArray(index + 1,(newMessage >> 16) & (0b1111111111111111));

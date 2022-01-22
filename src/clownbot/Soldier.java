@@ -52,8 +52,8 @@ public class Soldier extends RobotPlayer {
             }
         }
         SwarmInfo.index = bestIndex;
-        SwarmInfo.get();
         if(bestIndex == -1) return false;
+        SwarmInfo.get();
         return true;
     }
 
@@ -67,12 +67,12 @@ public class Soldier extends RobotPlayer {
                 return true;
             }
         }
-        return true;
+        return false;
     }
 
     static void leader() throws GameActionException {
         SwarmInfo.get();
-        MapLocation target = new MapLocation(rc.getMapWidth() - 1 - rc.getLocation().x,rc.getMapHeight() - 1 - rc.getLocation().y);
+        MapLocation target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
         Navigation.go(target);
         SwarmInfo.leader = rc.getLocation();
         SwarmInfo.attack = target;
@@ -92,10 +92,12 @@ public class Soldier extends RobotPlayer {
     }
 
     static void transformation() throws GameActionException {
+        rc.setIndicatorString("TRANSFORMING!");
         if(findLeader()) {
             state = STATE.FOLLOWER;
         }else{
             if(becomeLeader()) {
+                rc.setIndicatorString("LEADER!");
                state = STATE.LEADER;
             }else{
                 state = STATE.SCOUT;
@@ -106,10 +108,13 @@ public class Soldier extends RobotPlayer {
     static void runSoldier() throws GameActionException {
         if(state == STATE.LEADER) {
             leader();
+            rc.setIndicatorString("LEADER");
         }else if(state == STATE.FOLLOWER) {
             follower();
+            rc.setIndicatorString("FOLLOWER");
         }else{
             scout();
+            rc.setIndicatorString("SCOUT");
             timer--;
             if(timer < 0) {
                 transformation();
