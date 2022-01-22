@@ -13,6 +13,8 @@ public class Soldier extends RobotPlayer {
     static MODE mode;
 
     static int timer = 20;
+    static int lastLeaderParity = 0;
+    static int violationCounter = 0;
 
     static final Random rng = new Random();
 
@@ -126,7 +128,7 @@ public class Soldier extends RobotPlayer {
         if(target == null || rc.getLocation().distanceSquaredTo(target) < 10) target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
         Navigation.go(target);
         SwarmInfo.leader = rc.getLocation();
-        SwarmInfo.attack = target;
+        SwarmInfo.parity ^= 1;
         SwarmInfo.size = 1;
         SwarmInfo.write();
 
@@ -135,6 +137,17 @@ public class Soldier extends RobotPlayer {
 
     static void follower() throws GameActionException {
         SwarmInfo.get();
+        if(lastLeaderParity == SwarmInfo.parity) {
+            // Parity Violation!
+            violationCounter++;
+            if(violationCounter >= 3) {
+                // Leader is DEAD
+                SwarmInfo.clear();
+            }
+        }else{
+            lastLeaderParity ^= 1;
+            violationCounter = 0;
+        }
         if(SwarmInfo.index == -1) {
             // Needs to find a swarm
             transformation();
