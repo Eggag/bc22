@@ -1,4 +1,4 @@
-package template;
+package clownbot;
 
 import battlecode.common.*;
 import java.util.Random;
