@@ -8,6 +8,8 @@ public strictfp class RobotPlayer {
     static RobotController rc;
 
     // 0 - 29 are swarm info
+    // 30 - 44 are hot spot
+    // 45 - 49 are archon
 
     static final Direction[] directions = {
             Direction.NORTH,

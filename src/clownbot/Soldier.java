@@ -15,12 +15,19 @@ public class Soldier extends RobotPlayer {
     static int timer = 20;
     static int lastLeaderParity = 0;
     static int violationCounter = 0;
+    static RobotInfo[] enemies;
 
     static final Random rng = new Random();
 
     static MapLocation target = null;
 
-    static void scout() throws GameActionException {
+    // Update hotspot, soldier count, etc.
+    static void updateInfo() throws GameActionException {
+        enemies = rc.senseNearbyRobots(rc.getType().visionRadiusSquared,rc.getTeam().opponent());
+        Hotspot.addEnemies(enemies);
+    }
+
+    static void randomCombat() throws GameActionException {
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -31,7 +38,10 @@ public class Soldier extends RobotPlayer {
                 rc.attack(toAttack);
             }
         }
+    }
 
+    static void scout() throws GameActionException {
+        randomCombat();
         // Also try to move randomly.
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)) {
@@ -43,21 +53,24 @@ public class Soldier extends RobotPlayer {
     static boolean merge() throws GameActionException {
         int originalIndex = SwarmInfo.index;
         int thresholdDistSquared = 20;
+        int originalSize = SwarmInfo.size;
         int best = 1000000000;
         int bestIndex = -1;
         MapLocation loc = rc.getLocation();
         for(int i = 0;i < 29;i += 2) {
             SwarmInfo.index = i;
             SwarmInfo.get();
-            if(SwarmInfo.mode != 1 || i == originalIndex) continue;
+            if(SwarmInfo.mode != 1 || i == originalIndex || SwarmInfo.size < originalSize) continue;
             int dist = SwarmInfo.leader.distanceSquaredTo(loc);
             if(dist < thresholdDistSquared && dist < best) {
-//                rc.setIndicatorString("DISTANCE " + dist);
+                rc.setIndicatorString("DISTANCE " + dist);
+                rc.setIndicatorString("COUP DE TA! " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y);
                 best = dist;
                 bestIndex = i;
             }
         }
         SwarmInfo.index = originalIndex;
+        SwarmInfo.get();
         if(bestIndex != -1) {
             SwarmInfo.resignWithNewLeader(bestIndex);
             return true;
@@ -76,6 +89,7 @@ public class Soldier extends RobotPlayer {
             SwarmInfo.get();
             if(SwarmInfo.mode != 1 || SwarmInfo.size >= thresholdSwarmSize) continue;
             int dist = SwarmInfo.leader.distanceSquaredTo(loc);
+            rc.setIndicatorString("PASS! " + SwarmInfo.size + " " + dist);
             if(dist < thresholdDistSquared && dist < best) {
                 best = dist;
                 bestIndex = i;
@@ -94,7 +108,9 @@ public class Soldier extends RobotPlayer {
             SwarmInfo.index = i;
             SwarmInfo.get();
             if(SwarmInfo.mode == 0) {
+                SwarmInfo.leader = rc.getLocation();
                 SwarmInfo.mode = 1;
+                SwarmInfo.size = 1;
                 SwarmInfo.write();
                 return true;
             }
@@ -103,40 +119,48 @@ public class Soldier extends RobotPlayer {
     }
 
 
-
     static void leader() throws GameActionException {
         SwarmInfo.get();
-        if(SwarmInfo.mode == 2) {
+        randomCombat();
+        rc.setIndicatorDot(rc.getLocation(),255,0,0);
+        if(SwarmInfo.mode == 0 || SwarmInfo.mode == 2) {
+            if(SwarmInfo.mode == 0) {
+                rc.setIndicatorString("CLOWNERY!");
+            }
             SwarmInfo.clear();
             timer = 20;
             state = STATE.SCOUT;
             return;
         }else if(SwarmInfo.mode == 3) {
             int newLeader = SwarmInfo.getNewLeader();
-            rc.setIndicatorString("RESIGNING FOR MERGING");
+            rc.setIndicatorString("RESIGNING FOR MERGING " + newLeader);
             SwarmInfo.clear();
             timer = 30;
             state = STATE.FOLLOWER;
             SwarmInfo.index = newLeader;
+            violationCounter = 0;
             return;
         }
+        rc.setIndicatorString("LEADER! " + SwarmInfo.size + " " + SwarmInfo.index);
         if(SwarmInfo.size > 1) {
             // Reset resignation timer
             timer = 10;
         }
 
-        if(target == null || rc.getLocation().distanceSquaredTo(target) < 10) target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
+        target = Hotspot.findClosestHotspot();
         Navigation.go(target);
-        SwarmInfo.leader = rc.getLocation();
-        SwarmInfo.parity ^= 1;
-        SwarmInfo.size = 1;
-        SwarmInfo.write();
+        if(!merge()) {
+            SwarmInfo.leader = rc.getLocation();
+            SwarmInfo.parity ^= 1;
+            SwarmInfo.size = 1;
+            SwarmInfo.write();
+        }
 
-        merge();
     }
 
     static void follower() throws GameActionException {
         SwarmInfo.get();
+        randomCombat();
         if(lastLeaderParity == SwarmInfo.parity) {
             // Parity Violation!
             violationCounter++;
@@ -156,12 +180,13 @@ public class Soldier extends RobotPlayer {
                 // Merging mode!
                 SwarmInfo.index = SwarmInfo.getNewLeader();
                 SwarmInfo.get();
+                violationCounter = 0;
             }
             // Go towards leader
             SwarmInfo.size++;
             SwarmInfo.write();
             Navigation.go(SwarmInfo.leader);
-            rc.setIndicatorString("FOLLOWER OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y);
+            rc.setIndicatorString("FOLLOWER OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y + " with " + violationCounter + " of " + SwarmInfo.size);
             // Reset timer
             timer = 30;
         }
@@ -172,6 +197,7 @@ public class Soldier extends RobotPlayer {
         if(findLeader()) {
             timer = 30;
             state = STATE.FOLLOWER;
+            violationCounter = 0;
         }else{
             if(becomeLeader()) {
                 timer = 10;
@@ -185,6 +211,7 @@ public class Soldier extends RobotPlayer {
 
     static void runSoldier() throws GameActionException {
         timer--;
+        updateInfo();
         if(state == STATE.LEADER) {
             rc.setIndicatorString("LEADER");
             leader();
