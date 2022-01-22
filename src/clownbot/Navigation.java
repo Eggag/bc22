@@ -14,7 +14,7 @@ public class Navigation extends RobotPlayer {
     static int[] queueSizes = new int[10];
     static int[] where = new int[10];
     static MapLocation[][] queues = new MapLocation[10][81];
-    static Direction[][] best = new Direction[9][9];
+    static Direction[][] bestDirection = new Direction[9][9];
     static int rs = 0;
     static int maxVis = 4;
     static int maxVisSquared = 20;
@@ -47,8 +47,8 @@ public class Navigation extends RobotPlayer {
         for(int i = 0;i <= 100;++i) {
             if(allRubbles[i] != 0 && rs < 10) {
                 rubbles[rs++] = i;
-                allRubbles[i] = rs;
             }
+            allRubbles[i] = rs;
         }
         dist[0][0] = 0;
         for(Direction dir : directions) {
@@ -58,6 +58,7 @@ public class Navigation extends RobotPlayer {
                 if(cur != 0) {
                     cur--;
                     queues[cur][queueSizes[cur]++] = uwu.add(dir);
+                    bestDirection[dir.dx + maxVis][dir.dy + maxVis] = dir;
                 }
             }
         }
@@ -80,6 +81,7 @@ public class Navigation extends RobotPlayer {
                 int newDist = curDist + r;
                 if(rc.onTheMap(owo) && newDist < dist[owo.x - uwu.x + maxVis][owo.y - uwu.y + maxVis]) {
                     dist[owo.x - uwu.x + maxVis][owo.y - uwu.y + maxVis] = newDist;
+                    bestDirection[owo.x - uwu.x + maxVis][owo.y - uwu.y + maxVis] = bestDirection[best.x - uwu.x + maxVis][best.y - uwu.y + maxVis];
                     int cur = allRubbles[r];
                     if(cur != 0) {
                         cur--;
@@ -88,5 +90,21 @@ public class Navigation extends RobotPlayer {
                 }
             }
         }
+        int best = 1000000000;
+        MapLocation bst = uwu;
+        for(int i = -maxVis;i <= maxVis;++i) {
+            for(int j = -maxVis;j <= maxVis;++j) {
+                MapLocation owo = new MapLocation(uwu.x + i,uwu.y + j);
+                if(rc.onTheMap(owo)) {
+                    dist[i + maxVis][j + maxVis] += 2 * rubbleAverage * Math.sqrt(goal.distanceSquaredTo(owo));
+                    if(dist[i + maxVis][j + maxVis] < best) {
+                        best = dist[i + maxVis][j + maxVis];
+                        bst = owo;
+                    }
+                }
+            }
+        }
+        Direction bestDir = bestDirection[bst.x - uwu.x + maxVis][bst.y - uwu.y + maxVis];
+        if(rc.canMove(bestDir)) rc.move(bestDir);
     }
 }
