@@ -50,15 +50,16 @@ public class Soldier extends RobotPlayer {
             if(SwarmInfo.mode != 1 || i == originalIndex) continue;
             int dist = SwarmInfo.leader.distanceSquaredTo(loc);
             if(dist < thresholdDistSquared && dist < best) {
+//                rc.setIndicatorString("DISTANCE " + dist);
                 best = dist;
                 bestIndex = i;
             }
         }
+        SwarmInfo.index = originalIndex;
         if(bestIndex != -1) {
-            SwarmInfo.resignWithNewLeader(best);
+            SwarmInfo.resignWithNewLeader(bestIndex);
             return true;
         }
-        SwarmInfo.index = originalIndex;
         return false;
     }
 
@@ -122,7 +123,7 @@ public class Soldier extends RobotPlayer {
             timer = 10;
         }
 
-        if(target == null) target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
+        if(target == null || rc.getLocation().distanceSquaredTo(target) < 10) target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapWidth()));
         Navigation.go(target);
         SwarmInfo.leader = rc.getLocation();
         SwarmInfo.attack = target;
