@@ -19,29 +19,35 @@ public class Navigation extends RobotPlayer {
     static int maxVis = 4;
     static int maxVisSquared = 20;
 
-
-
     static void go(MapLocation goal) throws GameActionException {
-        Arrays.fill(allRubbles,0);
-        Arrays.fill(dist,1e9);
+        rc.setIndicatorString("STAGE -1");
         for(int i = 0;i < 10;++i) {
             queueSizes[i] = 0;
             where[i] = 0;
         }
+        for(int i = 0;i <= 100;++i) {
+            allRubbles[i] = 0;
+        }
         int rubbleAverage = 0;
         int rubbleCnt = 0;
+        rc.setIndicatorString("STAGE 0");
         MapLocation uwu = rc.getLocation();
         for(int i = -maxVis;i <= maxVis;++i) {
             for(int j = -maxVis;j <= maxVis;++j) {
+                rc.setIndicatorString("STAGE 0 " + i + " " + j);
+                dist[i + maxVis][j + maxVis] = 100000000;
                 MapLocation owo = new MapLocation(uwu.x + i,uwu.y + j);
-                if(rc.onTheMap(owo)) {
+                if(owo.distanceSquaredTo(uwu) <= maxVisSquared && rc.onTheMap(owo)) {
                     map[i + maxVis][j + maxVis] = 10 + rc.senseRubble(owo);
-                    allRubbles[map[i + maxVis][j + maxVis]] = 1;
                     rubbleAverage += map[i + maxVis][j + maxVis];
                     rubbleCnt++;
+                    allRubbles[map[i + maxVis][j + maxVis]] = 1;
+                }else{
+                    map[i + maxVis][j + maxVis] = 100000000;
                 }
             }
         }
+        rc.setIndicatorString("STAGE 1");
         rubbleAverage /= rubbleCnt;
         rs = 0;
         for(int i = 0;i <= 100;++i) {
@@ -50,6 +56,7 @@ public class Navigation extends RobotPlayer {
             }
             allRubbles[i] = rs;
         }
+        rc.setIndicatorString("STAGE 3");
         dist[0][0] = 0;
         for(Direction dir : directions) {
             if(rc.canMove(dir)) {
@@ -62,6 +69,8 @@ public class Navigation extends RobotPlayer {
                 }
             }
         }
+        rc.setIndicatorString("STAGE 4");
+
         while(true) {
             int bst = 1000000000;
             MapLocation best = null;
@@ -90,6 +99,8 @@ public class Navigation extends RobotPlayer {
                 }
             }
         }
+        rc.setIndicatorString("STAGE 5");
+
         int best = 1000000000;
         MapLocation bst = uwu;
         for(int i = -maxVis;i <= maxVis;++i) {
@@ -104,6 +115,8 @@ public class Navigation extends RobotPlayer {
                 }
             }
         }
+        rc.setIndicatorString("STAGE 6");
+
         Direction bestDir = bestDirection[bst.x - uwu.x + maxVis][bst.y - uwu.y + maxVis];
         if(rc.canMove(bestDir)) rc.move(bestDir);
     }
