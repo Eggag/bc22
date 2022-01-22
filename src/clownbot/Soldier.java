@@ -13,7 +13,6 @@ public class Soldier extends RobotPlayer {
     static MODE mode;
 
     static int timer = 0;
-    static int leaderIndex = -1;
 
     static final Random rng = new Random(6147);
 
@@ -37,6 +36,72 @@ public class Soldier extends RobotPlayer {
         }
     }
 
+    static boolean findLeader() throws GameActionException {
+        int thresholdDistSquared = 20;
+        int best = 1000000000;
+        int bestIndex = -1;
+        MapLocation loc = rc.getLocation();
+        for(int i = 0;i < 29;i += 2) {
+            SwarmInfo.index = i;
+            SwarmInfo.get();
+            if(SwarmInfo.mode == 0) continue;
+            int dist = SwarmInfo.leader.distanceSquaredTo(loc);
+            if(dist < thresholdDistSquared && dist < best) {
+                best = dist;
+                bestIndex = i;
+            }
+        }
+        SwarmInfo.index = bestIndex;
+        SwarmInfo.get();
+        if(bestIndex == -1) return false;
+        return true;
+    }
+
+    static boolean becomeLeader() throws GameActionException {
+        for(int i = 0;i < 29;i += 2) {
+            SwarmInfo.index = i;
+            SwarmInfo.get();
+            if(SwarmInfo.mode == 0) {
+                SwarmInfo.mode = 1;
+                SwarmInfo.write();
+                return true;
+            }
+        }
+        return true;
+    }
+
+    static void leader() throws GameActionException {
+        SwarmInfo.get();
+        MapLocation target = new MapLocation(rc.getMapWidth() - 1 - rc.getLocation().x,rc.getMapHeight() - 1 - rc.getLocation().y);
+        Navigation.go(target);
+        SwarmInfo.leader = rc.getLocation();
+        SwarmInfo.attack = target;
+        SwarmInfo.size = 1;
+        SwarmInfo.write();
+    }
+
+    static void follower() throws GameActionException {
+        SwarmInfo.get();
+        if(SwarmInfo.index == -1) {
+            // Needs to find a swarm
+            transformation();
+        }else{
+            // Go towards leader
+            Navigation.go(SwarmInfo.leader);
+        }
+    }
+
+    static void transformation() throws GameActionException {
+        if(findLeader()) {
+            state = STATE.FOLLOWER;
+        }else{
+            if(becomeLeader()) {
+               state = STATE.LEADER;
+            }else{
+                state = STATE.SCOUT;
+            }
+        }
+    }
 
     static void runSoldier() throws GameActionException {
         if(state == STATE.LEADER) {
@@ -47,7 +112,7 @@ public class Soldier extends RobotPlayer {
             scout();
             timer--;
             if(timer < 0) {
-                state = STATE.FOLLOWER;
+                transformation();
             }
         }
     }

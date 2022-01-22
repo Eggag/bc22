@@ -10,7 +10,7 @@ public class Archon extends RobotPlayer {
 
     static void runArchon() throws GameActionException {
         if(turnCount == 1) {
-            rc.buildRobot(RobotType.MINER,directions[0]);
+            rc.buildRobot(RobotType.SOLDIER,directions[0]);
         }
     }
 }

@@ -7,6 +7,8 @@ public strictfp class RobotPlayer {
     static int turnCount = 0;
     static RobotController rc;
 
+    // 0 - 29 are swarm info
+
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
