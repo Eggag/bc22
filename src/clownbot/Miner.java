@@ -58,7 +58,7 @@ public class Miner extends RobotPlayer {
                 }
             }
             if (bst != null) {
-                Navigation.go(bst);
+                Navigation.goPSO(bst);
                 break;
             }
         }
@@ -85,7 +85,7 @@ public class Miner extends RobotPlayer {
                 }
             }
             scouting = true;
-            Navigation.go(scoutGoal);
+            Navigation.goPSO(scoutGoal);
         }
     }
 
@@ -130,7 +130,7 @@ public class Miner extends RobotPlayer {
                 }
             }
         }
-        if (bst != null) Navigation.go(bst);
+        if (bst != null) Navigation.goPSO(bst);
     }
 
     static void runMiner() throws GameActionException {
