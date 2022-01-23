@@ -29,6 +29,7 @@ public class SwarmInfo extends RobotPlayer {
     }
 
     static void clear() throws GameActionException {
+        if(index == -1) return;
         rc.writeSharedArray(index,0);
         rc.writeSharedArray(index + 1,0);
         index = -1;

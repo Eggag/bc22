@@ -4,11 +4,26 @@ import battlecode.common.*;
 public class Navigation extends RobotPlayer {
     static MapLocation[] lastLoc = new MapLocation[11];
     static Direction momentum = Direction.CENTER;
+    static int dlbLen = 4;
+    static MapLocation[] dontLookBack = new MapLocation[dlbLen];
+    static int dlbInd = 0;
 
     static MapLocation target = null;
 
     static int sz = 0;
     static int dist = 0;
+
+    static double dontLookBackFactor(MapLocation loc) throws GameActionException {
+        for(int i = 0;i < dlbLen;++i) {
+            if(loc.equals(dontLookBack[i])) return 1;
+        }
+        return 0;
+    }
+
+    static void updateDontLookBack() {
+        dontLookBack[dlbInd] = rc.getLocation();
+        dlbInd = (1 + dlbInd) % dlbLen;
+    }
 
     static void go(MapLocation goal) throws GameActionException {
         if(!rc.isActionReady()) return;
@@ -91,12 +106,14 @@ public class Navigation extends RobotPlayer {
         }
         if(rc.canMove(owo)) rc.move(owo);
         momentum = owo;
+        updateDontLookBack();
     }
 
     static double evaluatePSO(Direction dir,MapLocation goal) throws GameActionException {
         final double targetCoefficient = -0.6;
         final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.01;
+        final double dontLookBackCoefficient = -100;
         MapLocation newLocation = rc.getLocation().add(dir);
 
         if(!rc.canMove(dir)) return -1e18;
@@ -104,7 +121,7 @@ public class Navigation extends RobotPlayer {
         double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(goal));
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
-        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient + dontLookBackCoefficient * dontLookBackFactor(newLocation);
         return score;
     }
 
