@@ -20,6 +20,7 @@ public class Soldier extends RobotPlayer {
     static final Random rng = new Random();
 
     static MapLocation target = null;
+    static RobotInfo attackTarget = null;
 
     // Update hotspot, soldier count, etc.
     static void updateInfo() throws GameActionException {
@@ -28,7 +29,6 @@ public class Soldier extends RobotPlayer {
     }
 
     static void randomCombat() throws GameActionException {
-        // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
@@ -37,6 +37,54 @@ public class Soldier extends RobotPlayer {
             if (rc.canAttack(toAttack)) {
                 rc.attack(toAttack);
             }
+        }
+    }
+
+    static void combat() throws GameActionException{
+        MapLocation goal = SwarmInfo.leader;
+        RobotInfo curTarget = null;
+        int d = 10000000;
+        for(int i = 0; i < 10; i++){
+            Direction dir;
+            if(i < 9) dir = directions[i];
+            else dir = Direction.CENTER;
+            MapLocation newLoc = goal.add(dir);
+            if(rc.canSenseLocation(newLoc)){
+                RobotInfo rb = rc.senseRobotAtLocation(newLoc);
+                if(rb != null){
+                    int dist = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
+                    if(attackingUnit(rb)) dist -= 20;
+                    int rad = rc.getType().actionRadiusSquared;
+                    if(dist < d){
+                        d = dist;
+                        curTarget = rb;
+                    }
+                }
+            }
+        }
+        if(curTarget != null){
+            int attackRadius = rc.getType().actionRadiusSquared;
+            if(attackingUnit(curTarget)) {
+                if (curTarget.location.distanceSquaredTo(rc.getLocation()) <= attackRadius) {
+                    //attack and retreat
+                    if (rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
+                    Navigation.goOP(curTarget.location);
+                } else {
+                    //come forth and attack (only worth if we can actually attack)
+                    if (rc.canAttack(curTarget.location)) {
+                        Navigation.go(curTarget.location);
+                        rc.attack(curTarget.location);
+                    }
+                }
+            }
+            else{
+                Navigation.go(curTarget.location);
+                if (rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
+            }
+        }
+        curTarget = findNewTarget(true);
+        if(curTarget != null){
+            if(rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
         }
     }
 
@@ -118,6 +166,38 @@ public class Soldier extends RobotPlayer {
         return false;
     }
 
+    static RobotInfo findNewTarget(boolean inRad) throws GameActionException{
+        //find target based on health + distance
+        int dist = 10000000;
+        RobotInfo bst = null;
+        int rad = rc.getType().actionRadiusSquared;
+        for (RobotInfo rb : enemies) {
+            if (rb.getType() == RobotType.SOLDIER || rb.getType() == RobotType.WATCHTOWER || rb.getType() == RobotType.SAGE) {
+                int d = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
+                if(inRad){
+                    if(rc.getLocation().distanceSquaredTo(rb.getLocation()) > rad) continue;
+                }
+                if (d < dist) {
+                    dist = d;
+                    bst = rb;
+                }
+            }
+        }
+        if (bst == null) {
+            for (RobotInfo rb : enemies) {
+                int d = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
+                if(rb.getType() == RobotType.ARCHON) d -= 200;
+                if(inRad){
+                    if(rc.getLocation().distanceSquaredTo(rb.getLocation()) > rad) continue;
+                }
+                if (d < dist) {
+                    dist = d;
+                    bst = rb;
+                }
+            }
+        }
+        return bst;
+    }
 
     static void leader() throws GameActionException {
         SwarmInfo.get();
@@ -148,9 +228,57 @@ public class Soldier extends RobotPlayer {
         }
 
         target = Hotspot.findClosestHotspot();
-        Navigation.go(target);
+        if(attackTarget == null){
+            attackTarget = findNewTarget(false);
+        }
+        else {
+            int f = 0;
+            //try seeing if it is still in vision range
+            for (RobotInfo rb : enemies) {
+                if (rb.getID() == attackTarget.getID()) {
+                    attackTarget = rb;
+                    f = 1;
+                }
+            }
+            if (f == 0){
+                //try moving towards it if it is out of sight, hopefully we reach it again
+                if(rc.isMovementReady()){
+                    Navigation.go(attackTarget.location);
+                    int f1 = 0;
+                    for(RobotInfo rb : enemies){
+                        if(rb.getID() == attackTarget.getID()){
+                            attackTarget = rb;
+                            f1 = 1;
+                        }
+                    }
+                    if(f1 == 0) attackTarget = findNewTarget(false);
+                }
+            }
+        }
+        if(attackTarget != null){
+            if(attackingUnit(attackTarget)) {
+                int attackRadius = rc.getType().actionRadiusSquared;
+                if (attackTarget.location.distanceSquaredTo(rc.getLocation()) <= attackRadius) {
+                    //attack and retreat
+                    if (rc.canAttack(attackTarget.location)) rc.attack(attackTarget.location);
+                    Navigation.goOP(attackTarget.location);
+                } else {
+                    //come forth and attack (only worth if we can actually attack)
+                    if (rc.canAttack(attackTarget.location)) {
+                        Navigation.go(attackTarget.location);
+                        rc.attack(attackTarget.location);
+                    }
+                }
+            }
+            else{
+                Navigation.go(attackTarget.location);
+                if(rc.canAttack(attackTarget.location)) rc.attack(attackTarget.location);
+            }
+        }
+        if(rc.isMovementReady()) Navigation.go(target);
         if(!merge()) {
             SwarmInfo.leader = rc.getLocation();
+            if(attackTarget != null) SwarmInfo.leader = attackTarget.location;
             SwarmInfo.parity ^= 1;
             SwarmInfo.size = 1;
             SwarmInfo.write();
@@ -160,7 +288,8 @@ public class Soldier extends RobotPlayer {
 
     static void follower() throws GameActionException {
         SwarmInfo.get();
-        randomCombat();
+        //randomCombat();
+        combat();
         if(lastLeaderParity == SwarmInfo.parity) {
             // Parity Violation!
             violationCounter++;

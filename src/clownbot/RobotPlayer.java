@@ -49,4 +49,9 @@ public strictfp class RobotPlayer {
         }
     }
 
+    static boolean attackingUnit(RobotInfo rb) throws GameActionException{
+        if(rb.getType() == RobotType.SOLDIER || rb.getType() == RobotType.WATCHTOWER || rb.getType() == RobotType.SAGE) return true;
+        return false;
+    }
+
 }
