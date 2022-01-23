@@ -342,7 +342,7 @@ public class Soldier extends RobotPlayer {
     static void runSoldier() throws GameActionException {
         timer--;
         updateInfo();
-        updateAlive(NUM_SOLDIER_IND);
+        updateAlive(NUM_SOLDIERS_IND);
         if(state == STATE.LEADER) {
             rc.setIndicatorString("LEADER");
             leader();

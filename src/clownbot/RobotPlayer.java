@@ -9,8 +9,11 @@ public strictfp class RobotPlayer {
     static final Random rng = new Random();
 
     static int NUM_MINERS_IND = 63;
-    static int NUM_SOLDIER_IND = 62;
+    static int NUM_SOLDIERS_IND = 62;
     static int AGGRO_IND = 61;
+    static int NUM_ARCHONS_IND = 60;
+    static int NUM_ARCHONS_IND_2 = 59;
+    static int INCOME_IND = 58;
 
     static final Direction[] directions = {
             Direction.NORTH,
