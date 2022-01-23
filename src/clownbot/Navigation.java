@@ -89,7 +89,7 @@ public class Navigation extends RobotPlayer {
                 owo = dir;
             }
         }
-        rc.move(owo);
+        if(rc.canMove(owo)) rc.move(owo);
         momentum = owo;
     }
 

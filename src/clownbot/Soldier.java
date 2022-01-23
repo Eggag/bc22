@@ -293,21 +293,10 @@ public class Soldier extends RobotPlayer {
         SwarmInfo.get();
         //randomCombat();
         combat();
-        if(lastLeaderParity == SwarmInfo.parity) {
-            // Parity Violation!
-            violationCounter++;
-            if(violationCounter >= 3) {
-                // Leader is DEAD
-                rc.setIndicatorString("DEAD LEADER!");
-                SwarmInfo.clear();
-            }
-        }else{
-            lastLeaderParity ^= 1;
-            violationCounter = 0;
-        }
         if(SwarmInfo.index == -1) {
             // Needs to find a swarm
             transformation();
+            return;
         }else{
             if(SwarmInfo.mode == 3) {
                 // Merging mode!
@@ -322,6 +311,18 @@ public class Soldier extends RobotPlayer {
             rc.setIndicatorString("F OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y + " with " + violationCounter + " of " + SwarmInfo.index);
             // Reset timer
             timer = 30;
+        }
+        if(lastLeaderParity == SwarmInfo.parity) {
+            // Parity Violation!
+            violationCounter++;
+            if(violationCounter >= 3) {
+                // Leader is DEAD
+                rc.setIndicatorString("DEAD LEADER!");
+                SwarmInfo.clear();
+            }
+        }else{
+            lastLeaderParity ^= 1;
+            violationCounter = 0;
         }
     }
 
@@ -354,7 +355,7 @@ public class Soldier extends RobotPlayer {
                 SwarmInfo.write();
             }
         }else if(state == STATE.FOLLOWER) {
-            rc.setIndicatorString("FOLLOWER");
+            rc.setIndicatorString("FOLLOWER " + SwarmInfo.index);
             follower();
             if(timer < 0) {
                 timer = 20;
