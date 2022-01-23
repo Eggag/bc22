@@ -3,6 +3,7 @@ import battlecode.common.*;
 
 public class Navigation extends RobotPlayer {
     static MapLocation[] lastLoc = new MapLocation[11];
+    static Direction momentum = Direction.CENTER;
 
     static MapLocation target = null;
 
@@ -76,5 +77,39 @@ public class Navigation extends RobotPlayer {
             }
         }
         if(bst != null) Navigation.go(bst);
+    }
+
+    static void goPSO(MapLocation goal) throws GameActionException {
+        double bestScore = -1e18;
+        Direction owo = Direction.CENTER;
+        for(Direction dir : directions) {
+            double uwu = evaluatePSO(dir);
+            if (uwu > bestScore) {
+                bestScore = uwu;
+                owo = dir;
+            }
+        }
+        rc.move(owo);
+        momentum = owo;
+    }
+
+    static double evaluatePSO(Direction dir) throws GameActionException {
+        final double targetCoefficient = -0.6;
+        final double terrainCoefficient = -0.03;
+        final double momentumCoefficient = 0.01;
+        MapLocation newLocation = rc.getLocation().add(dir);
+
+        if(!rc.canMove(dir)) return -1e18;
+
+        double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
+        double terrainDifficulty = rc.senseRubble(newLocation);
+        double momentumAlignment = calculateMomentum(dir);
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
+        return score;
+    }
+
+    static int calculateMomentum(Direction dir) {
+        // Cross product for calculating how much it deviates from momentum
+        return momentum.dx * dir.dx + momentum.dy * dir.dy;
     }
 }
