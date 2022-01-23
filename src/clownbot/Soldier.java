@@ -55,7 +55,7 @@ public class Soldier extends RobotPlayer {
                     int dist = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
                     if(attackingUnit(rb)) dist -= 20;
                     int rad = rc.getType().actionRadiusSquared;
-                    if(dist < d){
+                    if(dist < d && rb.getTeam() == rc.getTeam().opponent()){
                         d = dist;
                         curTarget = rb;
                     }
