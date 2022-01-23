@@ -90,12 +90,15 @@ public class Soldier extends RobotPlayer {
 
     static void scout() throws GameActionException {
         randomCombat();
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            System.out.println("I moved!");
+        // Also try to go to target
+        if(target == null || target.distanceSquaredTo(rc.getLocation()) < 13) {
+            if(Math.random() < 0.5) {
+                target = Hotspot.findClosestHotspot();
+            }else{
+                target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapHeight()));
+            }
         }
+        Navigation.goPSO(target);
     }
 
     static boolean merge() throws GameActionException {
