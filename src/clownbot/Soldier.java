@@ -72,13 +72,13 @@ public class Soldier extends RobotPlayer {
                 } else {
                     //come forth and attack (only worth if we can actually attack)
                     if (rc.canAttack(curTarget.location)) {
-                        Navigation.go(curTarget.location);
+                        Navigation.goPSO(curTarget.location);
                         rc.attack(curTarget.location);
                     }
                 }
             }
             else{
-                Navigation.go(curTarget.location);
+                Navigation.goPSO(curTarget.location);
                 if (rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
             }
         }
@@ -243,7 +243,7 @@ public class Soldier extends RobotPlayer {
             if (f == 0){
                 //try moving towards it if it is out of sight, hopefully we reach it again
                 if(rc.isMovementReady()){
-                    Navigation.go(attackTarget.location);
+                    Navigation.goPSO(attackTarget.location);
                     int f1 = 0;
                     for(RobotInfo rb : enemies){
                         if(rb.getID() == attackTarget.getID()){
@@ -265,17 +265,17 @@ public class Soldier extends RobotPlayer {
                 } else {
                     //come forth and attack (only worth if we can actually attack)
                     if (rc.canAttack(attackTarget.location)) {
-                        Navigation.go(attackTarget.location);
+                        Navigation.goPSO(attackTarget.location);
                         rc.attack(attackTarget.location);
                     }
                 }
             }
             else{
-                Navigation.go(attackTarget.location);
+                Navigation.goPSO(attackTarget.location);
                 if(rc.canAttack(attackTarget.location)) rc.attack(attackTarget.location);
             }
         }
-        if(rc.isMovementReady()) Navigation.go(target);
+        if(rc.isMovementReady()) Navigation.goPSO(target);
         if(!merge()) {
             SwarmInfo.leader = rc.getLocation();
             if(attackTarget != null) SwarmInfo.leader = attackTarget.location;
@@ -315,7 +315,7 @@ public class Soldier extends RobotPlayer {
             // Go towards leader
             SwarmInfo.size++;
             SwarmInfo.write();
-            Navigation.go(SwarmInfo.leader);
+            Navigation.goPSO(SwarmInfo.leader);
             rc.setIndicatorString("F OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y + " with " + violationCounter + " of " + SwarmInfo.index);
             // Reset timer
             timer = 30;
