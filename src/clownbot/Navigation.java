@@ -83,7 +83,7 @@ public class Navigation extends RobotPlayer {
         double bestScore = -1e18;
         Direction owo = Direction.CENTER;
         for(Direction dir : directions) {
-            double uwu = evaluatePSO(dir);
+            double uwu = evaluatePSO(dir,goal);
             if (uwu > bestScore) {
                 bestScore = uwu;
                 owo = dir;
@@ -93,7 +93,7 @@ public class Navigation extends RobotPlayer {
         momentum = owo;
     }
 
-    static double evaluatePSO(Direction dir) throws GameActionException {
+    static double evaluatePSO(Direction dir,MapLocation goal) throws GameActionException {
         final double targetCoefficient = -0.6;
         final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.01;
@@ -101,7 +101,7 @@ public class Navigation extends RobotPlayer {
 
         if(!rc.canMove(dir)) return -1e18;
 
-        double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(target));
+        double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(goal));
         double terrainDifficulty = rc.senseRubble(newLocation);
         double momentumAlignment = calculateMomentum(dir);
         double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient;
