@@ -23,6 +23,22 @@ public class Hotspot extends RobotPlayer {
     }
 
     static MapLocation findClosestHotspot() throws GameActionException {
+        if(rc.getRoundNum() > 500 && Math.random() < 0.3){
+            MapLocation bstArchon = null;
+            int d = 100000;
+            for(int i = 45;i < 50;++i) {
+                index = i;
+                get();
+                if(type == 0) continue;
+                if(rc.getLocation().distanceSquaredTo(target) < d){
+                    d = rc.getLocation().distanceSquaredTo(target);
+                    bstArchon = target;
+                }
+            }
+            if(bstArchon != null){
+                return bstArchon;
+            }
+        }
         MapLocation bst = rc.getLocation();
         MapLocation uwu = rc.getLocation();
         int best = 1000000000;

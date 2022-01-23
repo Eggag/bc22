@@ -24,6 +24,19 @@ public class Soldier extends RobotPlayer {
 
     // Update hotspot, soldier count, etc.
     static void updateInfo() throws GameActionException {
+        if(turnCount == 1){
+            for(Direction dir : directions){
+                MapLocation newLoc = rc.getLocation().add(dir);
+                if(rc.canSenseLocation(newLoc)){
+                    RobotInfo cr = rc.senseRobotAtLocation(newLoc);
+                    if(cr != null){
+                        if(cr.getTeam() == rc.getTeam() && rc.getType() == RobotType.ARCHON){
+                            homeArchon = cr.getLocation();
+                        }
+                    }
+                }
+            }
+        }
         enemies = rc.senseNearbyRobots(rc.getType().visionRadiusSquared,rc.getTeam().opponent());
         Hotspot.addEnemies(enemies);
     }
@@ -95,7 +108,10 @@ public class Soldier extends RobotPlayer {
             if(Math.random() < 0.5) {
                 target = Hotspot.findClosestHotspot();
             }else{
-                target = new MapLocation(rng.nextInt(rc.getMapWidth()),rng.nextInt(rc.getMapHeight()));
+                double r = Math.random();
+                if(r < 0.33) target = new MapLocation(homeArchon.x, rc.getMapHeight() - homeArchon.y - 1);
+                if(r < 0.66) target =  new MapLocation(rc.getMapWidth() - homeArchon.x - 1, rc.getMapHeight() - homeArchon.y - 1);
+                else target = new MapLocation(rc.getMapWidth() - homeArchon.x - 1, homeArchon.y);
             }
         }
         Navigation.goPSO(target);

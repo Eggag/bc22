@@ -7,6 +7,7 @@ public strictfp class RobotPlayer {
     static int turnCount = 0;
     static RobotController rc;
     static final Random rng = new Random();
+    static MapLocation homeArchon = null;
 
     static int NUM_MINERS_IND = 63;
     static int NUM_SOLDIERS_IND = 62;

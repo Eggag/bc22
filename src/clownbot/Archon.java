@@ -81,6 +81,11 @@ public class Archon extends RobotPlayer {
 
 
     static void decideBuild() throws GameActionException {
+        RobotInfo[] enemies = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
+        if(enemies.length > 0){
+            build(RobotType.SOLDIER);
+            return;
+        }
         double cnt = 1.0 * sumMiners / Math.max(1,recentLim);
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
