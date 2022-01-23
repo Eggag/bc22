@@ -295,6 +295,7 @@ public class Soldier extends RobotPlayer {
             violationCounter++;
             if(violationCounter >= 3) {
                 // Leader is DEAD
+                rc.setIndicatorString("DEAD LEADER!");
                 SwarmInfo.clear();
             }
         }else{
@@ -315,7 +316,7 @@ public class Soldier extends RobotPlayer {
             SwarmInfo.size++;
             SwarmInfo.write();
             Navigation.go(SwarmInfo.leader);
-            rc.setIndicatorString("FOLLOWER OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y + " with " + violationCounter + " of " + SwarmInfo.size);
+            rc.setIndicatorString("F OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y + " with " + violationCounter + " of " + SwarmInfo.index);
             // Reset timer
             timer = 30;
         }
@@ -323,10 +324,10 @@ public class Soldier extends RobotPlayer {
 
     static void transformation() throws GameActionException {
         rc.setIndicatorString("TRANSFORMING!");
+        violationCounter = 0;
         if(findLeader()) {
             timer = 30;
             state = STATE.FOLLOWER;
-            violationCounter = 0;
         }else{
             if(becomeLeader()) {
                 timer = 10;

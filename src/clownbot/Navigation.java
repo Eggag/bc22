@@ -10,6 +10,7 @@ public class Navigation extends RobotPlayer {
     static int dist = 0;
 
     static void go(MapLocation goal) throws GameActionException {
+        if(!rc.isActionReady()) return;
         target = goal;
         dist = rc.getLocation().distanceSquaredTo(goal);
         Direction bst = Direction.CENTER;
