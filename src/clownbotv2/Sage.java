@@ -223,7 +223,7 @@ public class Sage extends RobotPlayer {
     static void runSage() throws GameActionException {
         timer--;
         updateInfo();
-        updateAlive(NUM_SOLDIERS_IND);
+        updateAlive(NUM_SAGE_IND);
         if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.5) {
             mode = MODE.NORMAL;
         }

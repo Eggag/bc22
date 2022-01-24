@@ -6,11 +6,11 @@ import java.util.Random;
 
 public class Soldier extends RobotPlayer {
 
-    enum STATE {LEADER,FOLLOWER,SCOUT, PERMANENT};
-    enum MODE {NORMAL, RESIGN, HEALING};
+    enum STATE {LEADER,FOLLOWER,SCOUT};
+    enum MODE {RESIGN};
 
-    static STATE state = STATE.SCOUT;
-    static MODE mode = MODE.NORMAL;
+    static STATE state;
+    static MODE mode;
 
     static int timer = 20;
     static int lastLeaderParity = 0;
@@ -30,7 +30,7 @@ public class Soldier extends RobotPlayer {
                 if(rc.canSenseLocation(newLoc)){
                     RobotInfo cr = rc.senseRobotAtLocation(newLoc);
                     if(cr != null){
-                        if(cr.getTeam() == rc.getTeam() && cr.getType() == RobotType.ARCHON){
+                        if(cr.getTeam() == rc.getTeam() && rc.getType() == RobotType.ARCHON){
                             homeArchon = cr.getLocation();
                         }
                     }
@@ -119,17 +119,7 @@ public class Soldier extends RobotPlayer {
 
     static boolean merge() throws GameActionException {
         int originalIndex = SwarmInfo.index;
-        int mapSize = rc.getMapHeight() * rc.getMapWidth();
-        int thresholdDistSquared = 0;
-
-        if(mapSize < 1000) {
-            thresholdDistSquared = 20;
-        }else if(mapSize < 2000) {
-            thresholdDistSquared = 36;
-        }else if(mapSize < 3000) {
-            thresholdDistSquared = 49;
-        }
-
+        int thresholdDistSquared = 20;
         int originalSize = SwarmInfo.size;
         int best = 1000000000;
         int bestIndex = -1;
@@ -318,13 +308,12 @@ public class Soldier extends RobotPlayer {
     static void follower() throws GameActionException {
         SwarmInfo.get();
         //randomCombat();
+        combat();
         if(SwarmInfo.index < 0 || SwarmInfo.index >= 30) {
             // Needs to find a swarm
             transformation();
-            combat();
             return;
         }else{
-            combat();
             if(SwarmInfo.mode == 3) {
                 // Merging mode!
                 SwarmInfo.index = SwarmInfo.getNewLeader();
@@ -370,33 +359,11 @@ public class Soldier extends RobotPlayer {
         }
     }
 
-    static void healingMode() throws GameActionException {
-        combat();
-        Navigation.goPSOAvoid(homeArchon,enemies);
-    }
-
     static void runSoldier() throws GameActionException {
-        if(turnCount == 1){
-            if(rc.getRoundNum() % 10 == 0){
-                state = STATE.PERMANENT;
-            }
-        }
         timer--;
         updateInfo();
         updateAlive(NUM_SOLDIERS_IND);
-        if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.5) {
-            mode = MODE.NORMAL;
-        }
-        if(mode == MODE.HEALING || rc.getHealth() < rc.getType().health * 0) {
-            state = STATE.SCOUT;
-            mode = MODE.HEALING;
-            timer = 30;
-            healingMode();
-        }
-        else if(state == STATE.PERMANENT){
-            scout();
-        }
-        else if(state == STATE.LEADER) {
+        if(state == STATE.LEADER) {
             rc.setIndicatorString("LEADER");
             leader();
             if(timer < 0) {
@@ -417,6 +384,5 @@ public class Soldier extends RobotPlayer {
                 transformation();
             }
         }
-//        rc.setIndicatorString("HOME ARCHON: " + homeArchon);
     }
 }
