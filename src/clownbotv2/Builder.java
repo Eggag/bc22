@@ -42,6 +42,7 @@ public class Builder extends RobotPlayer {
             if(rc.canRepair(bstHeal)) rc.repair(bstHeal);
         }
         if(f == 0) {
+            rc.writeSharedArray(NEED_LAB_IND, 1);
             Direction bst = null;
             int d = 0;
             for (Direction dir : directions) {
@@ -64,7 +65,7 @@ public class Builder extends RobotPlayer {
         int lw = 1000000;
         RobotInfo bst = null;
         for(RobotInfo uwu : friends){
-            if(uwu.getLocation().distanceSquaredTo(rc.getLocation()) <= rad){
+            if(uwu.getType() == RobotType.ARCHON && uwu.getLocation().distanceSquaredTo(rc.getLocation()) <= rad){
                 int hp = uwu.getHealth();
                 if(hp == uwu.getType().getMaxHealth(uwu.getLevel())) continue;
                 if(hp < lw){
@@ -80,7 +81,7 @@ public class Builder extends RobotPlayer {
 
     static void runBuilder() throws GameActionException {
         updateInfo();
-        tryBuildLab();
         tryHeal();
+        tryBuildLab();
     }
 }

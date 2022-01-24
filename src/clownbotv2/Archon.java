@@ -97,6 +97,10 @@ public class Archon extends RobotPlayer {
             build(RobotType.SOLDIER);
             return;
         }
+        int labCnt = rc.readSharedArray(NUM_LAB_IND);
+        if(labCnt < 1 && rc.readSharedArray(NEED_LAB_IND) == 1){
+            return;
+        }
         int minerCnt = rc.readSharedArray(NUM_MINERS_IND);
         int soldiersCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
         if(minerCnt > 10 && soldiersCnt > 10){
