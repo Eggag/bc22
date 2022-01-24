@@ -119,7 +119,17 @@ public class Soldier extends RobotPlayer {
 
     static boolean merge() throws GameActionException {
         int originalIndex = SwarmInfo.index;
-        int thresholdDistSquared = 36;
+        int mapSize = rc.getMapHeight() * rc.getMapWidth();
+        int thresholdDistSquared = 0;
+
+        if(mapSize < 1000) {
+            thresholdDistSquared = 20;
+        }else if(mapSize < 2000) {
+            thresholdDistSquared = 36;
+        }else if(mapSize < 3000) {
+            thresholdDistSquared = 49;
+        }
+
         int originalSize = SwarmInfo.size;
         int best = 1000000000;
         int bestIndex = -1;
@@ -374,10 +384,10 @@ public class Soldier extends RobotPlayer {
         timer--;
         updateInfo();
         updateAlive(NUM_SOLDIERS_IND);
-        if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.8) {
+        if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.5) {
             mode = MODE.NORMAL;
         }
-        if(mode == MODE.HEALING || rc.getHealth() < rc.getType().health * 0.2) {
+        if(mode == MODE.HEALING || rc.getHealth() < rc.getType().health * 0) {
             state = STATE.SCOUT;
             mode = MODE.HEALING;
             timer = 30;
@@ -407,6 +417,6 @@ public class Soldier extends RobotPlayer {
                 transformation();
             }
         }
-        rc.setIndicatorString("HOME ARCHON: " + homeArchon);
+//        rc.setIndicatorString("HOME ARCHON: " + homeArchon);
     }
 }

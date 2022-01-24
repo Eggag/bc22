@@ -94,11 +94,11 @@ public class Navigation extends RobotPlayer {
         if(bst != null) Navigation.go(bst);
     }
 
-    static void goPSO(MapLocation goal) throws GameActionException {
+    static void goPSOMiner(MapLocation goal) throws GameActionException {
         double bestScore = -1e18;
         Direction owo = Direction.CENTER;
         for(Direction dir : directions) {
-            double uwu = evaluatePSO(dir,goal);
+            double uwu = evaluatePSO(dir,goal,-0.01);
             if (uwu > bestScore) {
                 bestScore = uwu;
                 owo = dir;
@@ -109,9 +109,23 @@ public class Navigation extends RobotPlayer {
         updateDontLookBack();
     }
 
-    static double evaluatePSO(Direction dir,MapLocation goal) throws GameActionException {
+    static void goPSO(MapLocation goal) throws GameActionException {
+        double bestScore = -1e18;
+        Direction owo = Direction.CENTER;
+        for(Direction dir : directions) {
+            double uwu = evaluatePSO(dir,goal,-0.03);
+            if (uwu > bestScore) {
+                bestScore = uwu;
+                owo = dir;
+            }
+        }
+        if(rc.canMove(owo)) rc.move(owo);
+        momentum = owo;
+        updateDontLookBack();
+    }
+
+    static double evaluatePSO(Direction dir,MapLocation goal,double terrainCoefficient) throws GameActionException {
         final double targetCoefficient = -0.6;
-        final double terrainCoefficient = -0.03;
         final double momentumCoefficient = 0.01;
         final double dontLookBackCoefficient = -100;
         MapLocation newLocation = rc.getLocation().add(dir);
@@ -170,6 +184,7 @@ public class Navigation extends RobotPlayer {
         }
         return score;
     }
+
 
     static int calculateMomentum(Direction dir) {
         // Cross product for calculating how much it deviates from momentum
