@@ -1,10 +1,6 @@
-package clownbotv2;
+package clownbotv0;
 
 import battlecode.common.*;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class Miner extends RobotPlayer {
 
@@ -58,7 +54,7 @@ public class Miner extends RobotPlayer {
                 }
             }
             if (bst != null) {
-                Navigation.goPSO(bst);
+                clownbotv0.Navigation.goPSO(bst);
                 break;
             }
         }
@@ -66,7 +62,7 @@ public class Miner extends RobotPlayer {
 
     static void tryScout() throws GameActionException {
         if (!rc.isMovementReady()) return;
-        if (scouting && rc.getLocation().distanceSquaredTo(scoutGoal) > 20) Navigation.go(scoutGoal);
+        if (scouting && rc.getLocation().distanceSquaredTo(scoutGoal) > 20) clownbotv0.Navigation.go(scoutGoal);
         else {
             double rand = Math.random();
             if (rand < 0.7) {
@@ -85,7 +81,7 @@ public class Miner extends RobotPlayer {
                 }
             }
             scouting = true;
-            Navigation.goPSO(scoutGoal);
+            clownbotv0.Navigation.goPSO(scoutGoal);
         }
     }
 
@@ -139,6 +135,7 @@ public class Miner extends RobotPlayer {
         addDanger();
         tryMine();
         tryScout();
+        addDanger();
     }
 
 }
