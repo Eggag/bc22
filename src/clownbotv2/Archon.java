@@ -127,7 +127,7 @@ public class Archon extends RobotPlayer {
                     break;
                 }
             }
-//            if(f == 0) build(RobotType.BUILDER);
+            if(f == 0) build(RobotType.BUILDER);
         }
         double cnt = 1.0 * sumMiners / Math.max(1,recentLim);
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
