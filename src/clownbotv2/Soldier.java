@@ -9,10 +9,10 @@ public class Soldier extends RobotPlayer {
     enum STATE {LEADER,FOLLOWER,SCOUT};
     enum MODE {RESIGN};
 
-    static STATE state;
+    static STATE state = STATE.FOLLOWER;
     static MODE mode;
 
-    static int timer = 20;
+    static int timer = 30;
     static int lastLeaderParity = 0;
     static int violationCounter = 0;
     static RobotInfo[] enemies;
@@ -119,7 +119,7 @@ public class Soldier extends RobotPlayer {
 
     static boolean merge() throws GameActionException {
         int originalIndex = SwarmInfo.index;
-        int thresholdDistSquared = 20;
+        int thresholdDistSquared = 36;
         int originalSize = SwarmInfo.size;
         int best = 1000000000;
         int bestIndex = -1;
@@ -308,12 +308,13 @@ public class Soldier extends RobotPlayer {
     static void follower() throws GameActionException {
         SwarmInfo.get();
         //randomCombat();
-        combat();
         if(SwarmInfo.index < 0 || SwarmInfo.index >= 30) {
             // Needs to find a swarm
             transformation();
+            combat();
             return;
         }else{
+            combat();
             if(SwarmInfo.mode == 3) {
                 // Merging mode!
                 SwarmInfo.index = SwarmInfo.getNewLeader();

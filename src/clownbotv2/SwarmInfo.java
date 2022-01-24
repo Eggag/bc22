@@ -13,7 +13,7 @@ public class SwarmInfo extends RobotPlayer {
     static int mode = 0;
 
     static void get() throws GameActionException {
-        if(index == -1) return;
+        if(index < 0 || index >= 30) return;
         int message = (rc.readSharedArray(index)) | (rc.readSharedArray(index + 1) << 16);
         size = (message) & (0b111111);
         leader = new MapLocation((message >> 6) & (0b111111),(message >> 12) & (0b111111));
@@ -22,7 +22,7 @@ public class SwarmInfo extends RobotPlayer {
     }
 
     static void write() throws GameActionException {
-        if(index == -1) return;
+        if(index < 0 || index >= 30) return;
         int newMessage = size | (leader.x << 6) | (leader.y << 12) | (parity << 18) | (mode << 30);
         rc.writeSharedArray(index,newMessage & (0b1111111111111111));
         rc.writeSharedArray(index + 1,(newMessage >> 16) & (0b1111111111111111));

@@ -51,11 +51,11 @@ public class Archon extends RobotPlayer {
         double multiplier = (coef + (danger * 1.5));
         double mapSize = rc.getMapHeight() * rc.getMapWidth();
         if(mapSize < 1000) {
-            multiplier *= Math.min(10,rc.getRoundNum()) / 10;
-        }else if(mapSize < 1500) {
-            multiplier *= Math.min(25,rc.getRoundNum()) / 25;
+            multiplier *= Math.min(10.0,rc.getRoundNum()) / 10;
+        }else if(mapSize < 2000) {
+            multiplier *= Math.min(25.0,rc.getRoundNum()) / 25;
         }else{
-            multiplier *= Math.min(50,rc.getRoundNum()) / 50;
+            multiplier *= Math.min(50.0,rc.getRoundNum()) / 50;
         }
         boolean rich = leadBalance > 400;
         if(rich) {
