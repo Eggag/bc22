@@ -30,8 +30,8 @@ public class Soldier extends RobotPlayer {
                 if(rc.canSenseLocation(newLoc)){
                     RobotInfo cr = rc.senseRobotAtLocation(newLoc);
                     if(cr != null){
-                        if(cr.getTeam() == rc.getTeam() && rc.getType() == RobotType.ARCHON){
-                            updateHomeArchon(cr.getLocation());
+                        if(cr.getTeam() == rc.getTeam() && cr.getType() == RobotType.ARCHON){
+                            homeArchon = cr.getLocation();
                         }
                     }
                 }

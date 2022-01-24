@@ -13,8 +13,8 @@ public class Builder extends RobotPlayer {
                 if(rc.canSenseLocation(newLoc)){
                     RobotInfo cr = rc.senseRobotAtLocation(newLoc);
                     if(cr != null){
-                        if(cr.getTeam() == rc.getTeam() && rc.getType() == RobotType.ARCHON){
-                            updateHomeArchon(cr.getLocation());
+                        if(cr.getTeam() == rc.getTeam() && cr.getType() == RobotType.ARCHON){
+                            homeArchon = cr.getLocation();
                         }
                     }
                 }
@@ -24,11 +24,12 @@ public class Builder extends RobotPlayer {
     }
 
     static void tryBuildLab() throws GameActionException{
-        rc.setIndicatorString("HOME ARCHON: " + homeArchon);
         MapLocation bstHeal = null;
         int crBst = 10000;
+        int f = 0;
         for(RobotInfo uwu : friends){
             if(uwu.getType() == RobotType.LABORATORY){
+                f = 1;
                 int hp = uwu.getHealth();
                 if(hp == uwu.getType().getMaxHealth(uwu.getLevel())) continue;
                 if(hp < crBst){
@@ -40,19 +41,21 @@ public class Builder extends RobotPlayer {
         if(bstHeal != null){
             if(rc.canRepair(bstHeal)) rc.repair(bstHeal);
         }
-        Direction bst = null;
-        int d = 0;
-        for(Direction dir : directions){
-            if(rc.canBuildRobot(RobotType.LABORATORY, dir)){
-                int di = homeArchon.distanceSquaredTo(rc.getLocation().add(dir));
-                if(di > d){
-                    d = di;
-                    bst = dir;
+        if(f == 0) {
+            Direction bst = null;
+            int d = 0;
+            for (Direction dir : directions) {
+                if (rc.canBuildRobot(RobotType.LABORATORY, dir)) {
+                    int di = homeArchon.distanceSquaredTo(rc.getLocation().add(dir));
+                    if (di > d) {
+                        d = di;
+                        bst = dir;
+                    }
                 }
             }
-        }
-        if(bst != null){
-            rc.buildRobot(RobotType.LABORATORY, bst);
+            if (bst != null) {
+                rc.buildRobot(RobotType.LABORATORY, bst);
+            }
         }
     }
 
