@@ -103,7 +103,7 @@ public class Archon extends RobotPlayer {
         }
         int minerCnt = rc.readSharedArray(NUM_MINERS_IND);
         int soldiersCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
-        if(minerCnt > 10 && soldiersCnt > 10){
+        if(minerCnt > 20 && soldiersCnt > 20){
             RobotInfo[] fr = rc.senseNearbyRobots(1000, rc.getTeam());
             int f = 0;
             for(RobotInfo owo : fr){

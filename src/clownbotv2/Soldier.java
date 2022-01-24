@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class Soldier extends RobotPlayer {
 
-    enum STATE {LEADER,FOLLOWER,SCOUT};
+    enum STATE {LEADER,FOLLOWER,SCOUT, PERMANENT};
     enum MODE {NORMAL, RESIGN, HEALING};
 
     static STATE state = STATE.SCOUT;
@@ -366,6 +366,11 @@ public class Soldier extends RobotPlayer {
     }
 
     static void runSoldier() throws GameActionException {
+        if(turnCount == 1){
+            if(rc.getRoundNum() % 10 == 0){
+                state = STATE.PERMANENT;
+            }
+        }
         timer--;
         updateInfo();
         updateAlive(NUM_SOLDIERS_IND);
@@ -377,7 +382,11 @@ public class Soldier extends RobotPlayer {
             mode = MODE.HEALING;
             timer = 30;
             healingMode();
-        }else if(state == STATE.LEADER) {
+        }
+        else if(state == STATE.PERMANENT){
+            scout();
+        }
+        else if(state == STATE.LEADER) {
             rc.setIndicatorString("LEADER");
             leader();
             if(timer < 0) {
