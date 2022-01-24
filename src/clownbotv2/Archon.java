@@ -97,6 +97,19 @@ public class Archon extends RobotPlayer {
             build(RobotType.SOLDIER);
             return;
         }
+        int minerCnt = rc.readSharedArray(NUM_MINERS_IND);
+        int soldiersCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
+        if(minerCnt > 10 && soldiersCnt > 10){
+            RobotInfo[] fr = rc.senseNearbyRobots(1000, rc.getTeam());
+            int f = 0;
+            for(RobotInfo owo : fr){
+                if(owo.getType() == RobotType.BUILDER){
+                    f = 1;
+                    break;
+                }
+            }
+            if(f == 0) build(RobotType.BUILDER);
+        }
         double cnt = 1.0 * sumMiners / Math.max(1,recentLim);
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);

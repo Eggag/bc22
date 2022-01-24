@@ -68,4 +68,8 @@ public strictfp class RobotPlayer {
         rc.writeSharedArray(index, nm + 1);
     }
 
+    static void updateHomeArchon(MapLocation loc) throws GameActionException{
+        homeArchon = loc;
+    }
+
 }

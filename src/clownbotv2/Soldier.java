@@ -31,7 +31,7 @@ public class Soldier extends RobotPlayer {
                     RobotInfo cr = rc.senseRobotAtLocation(newLoc);
                     if(cr != null){
                         if(cr.getTeam() == rc.getTeam() && rc.getType() == RobotType.ARCHON){
-                            homeArchon = cr.getLocation();
+                            updateHomeArchon(cr.getLocation());
                         }
                     }
                 }
@@ -385,5 +385,6 @@ public class Soldier extends RobotPlayer {
                 transformation();
             }
         }
+        rc.setIndicatorString("HOME ARCHON: " + homeArchon);
     }
 }
