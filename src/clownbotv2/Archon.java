@@ -20,6 +20,17 @@ public class Archon extends RobotPlayer {
     static int currentIndex = 0;
 
     static void build(RobotType rt) throws GameActionException{
+        /*
+        int sageCnt = rc.readSharedArray(NUM_SAGE_IND);
+        int soldierCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
+        int labCnt = rc.readSharedArray(NUM_LAB_IND);
+        if(rt == RobotType.SOLDIER && soldierCnt > 15 && labCnt > 0){
+            if(sageCnt * 2 < soldierCnt) {
+                return;
+            }
+        }
+        
+         */
         for (int i = 0; i < 8; i++) {
             Direction dir = directions[i];
             if (rc.canBuildRobot(rt, dir)){
@@ -103,7 +114,11 @@ public class Archon extends RobotPlayer {
         }
         int minerCnt = rc.readSharedArray(NUM_MINERS_IND);
         int soldiersCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
-        if(minerCnt > 20 && soldiersCnt > 20){
+        if(rc.getTeamGoldAmount(rc.getTeam()) >= 20){
+            build(RobotType.SAGE);
+            return;
+        }
+        if(minerCnt > 15 && soldiersCnt > 15){
             RobotInfo[] fr = rc.senseNearbyRobots(1000, rc.getTeam());
             int f = 0;
             for(RobotInfo owo : fr){
@@ -123,6 +138,10 @@ public class Archon extends RobotPlayer {
     }
 
     static void updateIncome() throws GameActionException{
+        int soldierCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
+        int sageCnt = rc.readSharedArray(NUM_SAGE_IND);
+        rc.writeSharedArray(NUM_SOLDIERS_IND_2, soldierCnt);
+        rc.writeSharedArray(NUM_SAGE_IND_2, sageCnt);
         int lst = rc.readSharedArray(INCOME_IND);
         int inc = rc.getTeamLeadAmount(rc.getTeam()) - lst;
         rc.setIndicatorString(lst + " " + rc.getTeamLeadAmount(rc.getTeam()));
@@ -142,6 +161,8 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(NUM_SOLDIERS_IND,rc.readSharedArray(NUM_SOLDIERS_IND));
         rc.writeSharedArray(NUM_MINERS_IND,0);
         rc.writeSharedArray(NUM_SOLDIERS_IND,0);
+        rc.writeSharedArray(NUM_LAB_IND, 0);
+        rc.writeSharedArray(NUM_SAGE_IND, 0);
     }
 
     static void updateSwarm() throws GameActionException {

@@ -17,6 +17,10 @@ public strictfp class RobotPlayer {
     static int INCOME_IND = 58;
     static int NEED_LAB_IND = 57;
     static int NUM_LAB_IND = 56;
+    static int NUM_SAGE_IND = 55;
+    static int NUM_SOLDIERS_IND_2 = 54;
+    static int NUM_SAGE_IND_2 = 53;
+
 
     static final Direction[] directions = {
             Direction.NORTH,
