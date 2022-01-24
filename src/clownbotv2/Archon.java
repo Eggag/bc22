@@ -48,7 +48,15 @@ public class Archon extends RobotPlayer {
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
         double coef = 1.0;
-        double multiplier = (coef + (danger * 1.5)) * Math.min(50,rc.getRoundNum()) / 50;
+        double multiplier = (coef + (danger * 1.5));
+        double mapSize = rc.getMapHeight() * rc.getMapWidth();
+        if(mapSize < 1000) {
+            multiplier *= Math.min(10,rc.getRoundNum()) / 10;
+        }else if(mapSize < 1500) {
+            multiplier *= Math.min(25,rc.getRoundNum()) / 25;
+        }else{
+            multiplier *= Math.min(50,rc.getRoundNum()) / 50;
+        }
         boolean rich = leadBalance > 400;
         if(rich) {
             return 100;
@@ -56,20 +64,23 @@ public class Archon extends RobotPlayer {
         if(cnt < 8){
             return 3 * multiplier;
         }
+        else if(cnt < 16) {
+            return 4 * multiplier;
+        }
         else if(cnt < 20) {
-            return 5 * multiplier;
+            return 6 * multiplier;
         }
         else if(cnt < 30) {
             return 8 * multiplier;
         }
         else if(cnt < 40){
-            return 15 * multiplier;
+            return 10 * multiplier;
         }
         else if(cnt < 50){
-            return 25 * multiplier;
+            return 12 * multiplier;
         }
         else {
-            return 35 * multiplier;
+            return 15 * multiplier;
         }
     }
 

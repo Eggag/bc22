@@ -309,7 +309,7 @@ public class Soldier extends RobotPlayer {
         SwarmInfo.get();
         //randomCombat();
         combat();
-        if(SwarmInfo.index == -1) {
+        if(SwarmInfo.index < 0 || SwarmInfo.index >= 30) {
             // Needs to find a swarm
             transformation();
             return;
