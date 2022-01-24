@@ -35,7 +35,7 @@ public class Archon extends RobotPlayer {
         if(bots.length == 0) return;
         RobotInfo bst = bots[0];
         for(RobotInfo bot : bots) {
-            if(rc.canRepair(bot.getLocation()) && bst.getHealth() < bot.getHealth() && bst.getType() == RobotType.SOLDIER) {
+            if((rc.canRepair(bot.getLocation()) && bot.getHealth() < bst.getHealth() && bot.getType() == RobotType.SOLDIER) || bst.getType() != RobotType.SOLDIER) {
                 bst = bot;
             }
         }
@@ -71,16 +71,16 @@ public class Archon extends RobotPlayer {
             return 6 * multiplier;
         }
         else if(cnt < 30) {
-            return 8 * multiplier;
+            return 7 * multiplier;
         }
         else if(cnt < 40){
-            return 10 * multiplier;
+            return 7.5 * multiplier;
         }
         else if(cnt < 50){
-            return 12 * multiplier;
+            return 8 * multiplier;
         }
         else {
-            return 15 * multiplier;
+            return 9 * multiplier;
         }
     }
 

@@ -125,6 +125,52 @@ public class Navigation extends RobotPlayer {
         return score;
     }
 
+    static void goPSOAvoid(MapLocation goal,RobotInfo[] enemies) throws GameActionException {
+        double bestScore = -1e18;
+        Direction owo = Direction.CENTER;
+        for(Direction dir : directions) {
+            double uwu = evaluatePSOAvoidSoldier(dir,goal,enemies);
+            if (uwu > bestScore) {
+                bestScore = uwu;
+                owo = dir;
+            }
+        }
+        if(rc.canMove(owo)) rc.move(owo);
+        momentum = owo;
+        updateDontLookBack();
+    }
+
+    static double evaluatePSOAvoidSoldier(Direction dir,MapLocation goal,RobotInfo[] enemies) throws GameActionException {
+        final double targetCoefficient = -0.6;
+        final double terrainCoefficient = -0.03;
+        final double momentumCoefficient = 0.01;
+        final double dontLookBackCoefficient = -100;
+        final double avoidanceCoefficient = -1;
+        MapLocation newLocation = rc.getLocation().add(dir);
+
+        if(!rc.canMove(dir)) return -1e18;
+
+        double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(goal));
+        double terrainDifficulty = rc.senseRubble(newLocation);
+        double momentumAlignment = calculateMomentum(dir);
+        double avoidanceScore = soldierAvoidance(newLocation,enemies);
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient + dontLookBackCoefficient * dontLookBackFactor(newLocation) + avoidanceCoefficient * avoidanceScore;
+        return score;
+    }
+
+    static double soldierAvoidance(MapLocation loc,RobotInfo[] enemies) throws GameActionException {
+        // Avoid soldier but attracted to miners
+        double score = 0;
+        int rad = rc.getType().actionRadiusSquared;
+        for(RobotInfo enemy : enemies) {
+            double hp = (double)enemy.getHealth() / (double)enemy.getType().getMaxHealth(0);
+            if(enemy.getType() == RobotType.SOLDIER){
+                score += (3.0 * hp) / (double) enemy.location.distanceSquaredTo(loc);
+            }
+        }
+        return score;
+    }
+
     static int calculateMomentum(Direction dir) {
         // Cross product for calculating how much it deviates from momentum
         return momentum.dx * dir.dx + momentum.dy * dir.dy;

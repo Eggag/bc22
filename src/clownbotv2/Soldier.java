@@ -7,12 +7,12 @@ import java.util.Random;
 public class Soldier extends RobotPlayer {
 
     enum STATE {LEADER,FOLLOWER,SCOUT};
-    enum MODE {RESIGN};
+    enum MODE {NORMAL, RESIGN, HEALING};
 
-    static STATE state = STATE.FOLLOWER;
-    static MODE mode;
+    static STATE state = STATE.SCOUT;
+    static MODE mode = MODE.NORMAL;
 
-    static int timer = 30;
+    static int timer = 20;
     static int lastLeaderParity = 0;
     static int violationCounter = 0;
     static RobotInfo[] enemies;
@@ -360,11 +360,24 @@ public class Soldier extends RobotPlayer {
         }
     }
 
+    static void healingMode() throws GameActionException {
+        combat();
+        Navigation.goPSOAvoid(homeArchon,enemies);
+    }
+
     static void runSoldier() throws GameActionException {
         timer--;
         updateInfo();
         updateAlive(NUM_SOLDIERS_IND);
-        if(state == STATE.LEADER) {
+        if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.8) {
+            mode = MODE.NORMAL;
+        }
+        if(mode == MODE.HEALING || rc.getHealth() < rc.getType().health * 0.2) {
+            state = STATE.SCOUT;
+            mode = MODE.HEALING;
+            timer = 30;
+            healingMode();
+        }else if(state == STATE.LEADER) {
             rc.setIndicatorString("LEADER");
             leader();
             if(timer < 0) {
