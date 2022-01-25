@@ -59,16 +59,18 @@ public class Archon extends RobotPlayer {
         double cnt = 1.0 * sumMiners / recentLim;
         double danger = (double)(rc.readSharedArray(AGGRO_IND)) / cnt;
         double coef = 1.0;
-        double multiplier = (coef + (danger * 1.5)) * Math.min(50,rc.getRoundNum()) / 50;
+        double multiplier = (coef + (danger * 1.5));
         boolean rich = leadBalance > 400;
         if(rich) {
             return 100;
         }
         if(cnt < 8){
-            return 3 * multiplier;
+            return 4 * multiplier;
         }
-        else if(cnt < 20) {
+        else if(cnt < 16) {
             return 5 * multiplier;
+        }else if(cnt < 20) {
+            return 6 * multiplier;
         }
         else if(cnt < 30) {
             return 8 * multiplier;
@@ -115,7 +117,7 @@ public class Archon extends RobotPlayer {
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
         rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt + " " + rc.readSharedArray(AGGRO_IND));
-        if(cnt < 4 || recent >= threshold()) build(RobotType.MINER);
+        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > 100 || soldiersCnt / minerCnt >= 0.5))) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
     }
 
