@@ -11,6 +11,7 @@ public class Miner extends RobotPlayer {
     static boolean scouting = false;
     static MapLocation scoutGoal = null;
     static RobotInfo[] enemies;
+    static MapLocation initialLoc = null;
 
     static void tryMine() throws GameActionException {
         MapLocation me = rc.getLocation();
@@ -104,9 +105,11 @@ public class Miner extends RobotPlayer {
 
 
     static void tryRun() throws GameActionException {
+        if(turnCount == 1) initialLoc = rc.getLocation();
         if (!rc.isMovementReady()) return;
         enemies = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
         Hotspot.addEnemies(enemies);
+//        if(rc.getRoundNum() < 200 && Math.random() < 0.5) Hotspot.addHotSpot(rc.getLocation());
         int mn = 10000000;
         MapLocation danger = null;
         for (RobotInfo uwu : enemies) {

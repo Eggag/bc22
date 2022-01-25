@@ -175,6 +175,7 @@ public class Archon extends RobotPlayer {
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
         }
+        if(rc.getRoundNum() < 100) Hotspot.addHotSpot(rc.getLocation());
         if(currentIndex == rc.getArchonCount() - 1) {
             // Clearing round-based data
             updateMinersAndSoldiers();

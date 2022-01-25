@@ -224,10 +224,10 @@ public class Sage extends RobotPlayer {
         timer--;
         updateInfo();
         updateAlive(NUM_SAGE_IND);
-        if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.5) {
+        if(mode == MODE.HEALING && rc.getHealth() >= rc.getType().health * 0.8) {
             mode = MODE.NORMAL;
         }
-        if(mode == MODE.HEALING || rc.getHealth() < rc.getType().health * 0) {
+        if(mode == MODE.HEALING || rc.getHealth() < rc.getType().health * 0.2) {
             state = STATE.FOLLOWER;
             mode = MODE.HEALING;
             timer = 30;
