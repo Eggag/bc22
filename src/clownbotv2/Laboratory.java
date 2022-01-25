@@ -8,7 +8,7 @@ public class Laboratory extends RobotPlayer {
         int sageCnt = rc.readSharedArray(NUM_SAGE_IND_2);
         int soldiersCnt = rc.readSharedArray(NUM_SOLDIERS_IND_2);
         rc.setIndicatorString("T RATE: " + rc.getTransmutationRate() + " sages: " + sageCnt + " soldiers: " + soldiersCnt);
-        if(sageCnt * 2 < soldiersCnt){
+        if(sageCnt < soldiersCnt * 2){
             if(rc.canTransmute()) rc.transmute();
         }
     }

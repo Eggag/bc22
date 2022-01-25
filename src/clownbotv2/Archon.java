@@ -79,10 +79,10 @@ public class Archon extends RobotPlayer {
             return 15 * multiplier;
         }
         else if(cnt < 50){
-            return 25 * multiplier;
+            return 20 * multiplier;
         }
         else {
-            return 35 * multiplier;
+            return 22 * multiplier;
         }
     }
 
@@ -102,7 +102,7 @@ public class Archon extends RobotPlayer {
             build(RobotType.SAGE);
             return;
         }
-        if(minerCnt > 15 && soldiersCnt > 15){
+        if(minerCnt > 10 && soldiersCnt > 10){
             RobotInfo[] fr = rc.senseNearbyRobots(1000, rc.getTeam());
             int f = 0;
             for(RobotInfo owo : fr){
@@ -111,13 +111,13 @@ public class Archon extends RobotPlayer {
                     break;
                 }
             }
-//            if(f == 0) build(RobotType.BUILDER);
+            if(f == 0) build(RobotType.BUILDER);
         }
         double cnt = 1.0 * sumMiners / Math.max(1,recentLim);
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
         rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt + " " + rc.readSharedArray(AGGRO_IND));
-        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > 100 || soldiersCnt / minerCnt >= 0.5))) build(RobotType.MINER);
+        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > 100 || soldiersCnt * 2 >= minerCnt))) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
     }
 
