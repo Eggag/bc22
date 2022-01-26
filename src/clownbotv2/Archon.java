@@ -48,7 +48,7 @@ public class Archon extends RobotPlayer {
         if(bots.length == 0) return;
         RobotInfo bst = bots[0];
         for(RobotInfo bot : bots) {
-            if((rc.canRepair(bot.getLocation()) && bot.getHealth() < bst.getHealth() && bot.getType() == RobotType.SOLDIER) || bst.getType() != RobotType.SOLDIER) {
+            if((rc.canRepair(bot.getLocation()) && bot.getHealth() < bst.getHealth() && bot.getType() == RobotType.SAGE) || bst.getType() != RobotType.SAGE) {
                 bst = bot;
             }
         }
