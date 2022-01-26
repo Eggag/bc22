@@ -118,6 +118,7 @@ public class Soldier extends RobotPlayer {
     }
 
     static boolean merge() throws GameActionException {
+        if(SwarmInfo.size >= 63) return false;
         int originalIndex = SwarmInfo.index;
         int thresholdDistSquared = 20;
         int originalSize = SwarmInfo.size;

@@ -78,10 +78,10 @@ public class Archon extends RobotPlayer {
             return 8 * multiplier;
         }
         else if(cnt < 40){
-            return 15 * multiplier;
+            return 8 * multiplier;
         }
         else if(cnt < 50){
-            return 20 * multiplier;
+            return 10 * multiplier;
         }
         else {
             return 22 * multiplier;
@@ -119,7 +119,7 @@ public class Archon extends RobotPlayer {
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
         rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt + " " + rc.readSharedArray(AGGRO_IND));
-        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > 100 || soldiersCnt * 2 >= minerCnt))) build(RobotType.MINER);
+        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > 100 || 1.0 * soldiersCnt / minerCnt >= 1))) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
     }
 
@@ -177,7 +177,7 @@ public class Archon extends RobotPlayer {
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
         }
-        //if(rc.getRoundNum() < 100) Hotspot.addHotSpot(rc.getLocation());
+//        if(rc.getRoundNum() < 50) Hotspot.addHotSpot(rc.getLocation());
         if(currentIndex == rc.getArchonCount() - 1) {
             // Clearing round-based data
             updateMinersAndSoldiers();
