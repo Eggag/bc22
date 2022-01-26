@@ -94,11 +94,11 @@ public class Navigation extends RobotPlayer {
         if(bst != null) Navigation.go(bst);
     }
 
-    static void goPSOMiner(MapLocation goal) throws GameActionException {
+    static void goPSOSage(MapLocation goal) throws GameActionException {
         double bestScore = -1e18;
         Direction owo = Direction.CENTER;
         for(Direction dir : directions) {
-            double uwu = evaluatePSO(dir,goal,-0.01);
+            double uwu = evaluatePSOSage(dir,goal,-0.05);
             if (uwu > bestScore) {
                 bestScore = uwu;
                 owo = dir;
@@ -107,6 +107,45 @@ public class Navigation extends RobotPlayer {
         if(rc.canMove(owo)) rc.move(owo);
         momentum = owo;
         updateDontLookBack();
+    }
+
+    static double evaluatePSOSage(Direction dir,MapLocation goal,double terrainCoefficient) throws GameActionException {
+        final double targetCoefficient = -0.6;
+        final double momentumCoefficient = 0.01;
+        final double dontLookBackCoefficient = -100;
+        MapLocation newLocation = rc.getLocation().add(dir);
+
+        if(!rc.canMove(dir)) return -1e18;
+
+        double currentDistance = Math.sqrt(newLocation.distanceSquaredTo(goal));
+        double terrainDifficulty = rc.senseRubble(newLocation);
+        double momentumAlignment = calculateMomentum(dir);
+        double score = currentDistance * targetCoefficient + terrainDifficulty * terrainCoefficient + momentumAlignment * momentumCoefficient + dontLookBackCoefficient * dontLookBackFactor(newLocation);
+        RobotInfo[] enemies = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
+        int aRad = rc.getType().actionRadiusSquared;
+        MapLocation newLoc = rc.getLocation().add(dir);
+        for(RobotInfo uwu : enemies){
+            double cur = 0.0;
+            double hp = (double)(uwu.getHealth()) / (double)(uwu.getType().getMaxHealth(1));
+            if(rc.getLocation().distanceSquaredTo(uwu.location) > aRad){
+                if(newLoc.distanceSquaredTo(uwu.location) <= aRad){
+                    score += 10.0 * (1.0 - hp);
+                }
+                else{
+                    score -= 1.0 - hp;
+                }
+            }
+            else{
+                if(newLoc.distanceSquaredTo(uwu.location) > aRad){
+                    score += 3.0 * hp;
+                }
+                else{
+                    score -= 5.0 * hp;
+                }
+            }
+            score += cur * 2.0;
+        }
+        return score;
     }
 
     static void goPSO(MapLocation goal) throws GameActionException {

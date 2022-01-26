@@ -146,7 +146,7 @@ public class Soldier extends RobotPlayer {
     }
 
     static boolean findLeader() throws GameActionException {
-        int thresholdDistSquared = 20;
+        int thresholdDistSquared = 300;
         int thresholdSwarmSize = 10;
         int best = 1000000000;
         int bestIndex = -1;
@@ -220,7 +220,6 @@ public class Soldier extends RobotPlayer {
 
     static void leader() throws GameActionException {
         SwarmInfo.get();
-        randomCombat();
         rc.setIndicatorDot(rc.getLocation(),255,0,0);
         if(SwarmInfo.mode == 0 || SwarmInfo.mode == 2) {
             if(SwarmInfo.mode == 0) {
@@ -272,6 +271,7 @@ public class Soldier extends RobotPlayer {
                     }
                     if(f1 == 0) attackTarget = findNewTarget(false);
                 }
+                if(attackTarget == null) findNewTarget(false);
             }
         }
         if(attackTarget != null){

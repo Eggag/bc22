@@ -20,17 +20,19 @@ public class Archon extends RobotPlayer {
     static int currentIndex = 0;
 
     static void build(RobotType rt) throws GameActionException{
-        /*
         int sageCnt = rc.readSharedArray(NUM_SAGE_IND);
         int soldierCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
         int labCnt = rc.readSharedArray(NUM_LAB_IND);
         if(rt == RobotType.SOLDIER && soldierCnt > 15 && labCnt > 0){
-            if(sageCnt * 2 < soldierCnt) {
+            if(sageCnt * 2 < soldierCnt){
                 return;
             }
         }
-        
-         */
+        if(rt == RobotType.SOLDIER && soldierCnt > 25 && labCnt > 0){
+            if(sageCnt * 2 < soldierCnt * 3){
+                return;
+            }
+        }
         for (int i = 0; i < 8; i++) {
             Direction dir = directions[i];
             if (rc.canBuildRobot(rt, dir)){
@@ -175,7 +177,7 @@ public class Archon extends RobotPlayer {
         if(rc.getRoundNum() % numArchons == currentIndex){
             decideBuild();
         }
-        if(rc.getRoundNum() < 100) Hotspot.addHotSpot(rc.getLocation());
+        //if(rc.getRoundNum() < 100) Hotspot.addHotSpot(rc.getLocation());
         if(currentIndex == rc.getArchonCount() - 1) {
             // Clearing round-based data
             updateMinersAndSoldiers();

@@ -54,55 +54,14 @@ public class Sage extends RobotPlayer {
     }
 
     static void combat() throws GameActionException{
-        MapLocation goal = SwarmInfo.leader;
-        RobotInfo curTarget = null;
-        int d = 10000000;
-        for(int i = 0; i < 10; i++){
-            Direction dir;
-            if(i < 9) dir = directions[i];
-            else dir = Direction.CENTER;
-            MapLocation newLoc = goal.add(dir);
-            if(rc.canSenseLocation(newLoc)){
-                RobotInfo rb = rc.senseRobotAtLocation(newLoc);
-                if(rb != null){
-                    int dist = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
-                    if(attackingUnit(rb)) dist -= 20;
-                    int rad = rc.getType().actionRadiusSquared;
-                    if(dist < d && rb.getTeam() == rc.getTeam().opponent()){
-                        d = dist;
-                        curTarget = rb;
-                    }
-                }
-            }
-        }
-        if(curTarget != null){
-            int attackRadius = rc.getType().actionRadiusSquared;
-            if(attackingUnit(curTarget)) {
-                if (curTarget.location.distanceSquaredTo(rc.getLocation()) <= attackRadius) {
-                    //attack and retreat
-                    if (rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
-                    Navigation.goOP(curTarget.location);
-                } else {
-                    //come forth and attack (only worth if we can actually attack)
-                    if (rc.canAttack(curTarget.location)) {
-                        Navigation.goPSO(curTarget.location);
-                        rc.attack(curTarget.location);
-                    }
-                }
-            }
-            else{
-                Navigation.goPSO(curTarget.location);
-                if (rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
-            }
-        }
-        curTarget = findNewTarget(true);
+        RobotInfo curTarget = findNewTarget(true);
         if(curTarget != null){
             if(rc.canAttack(curTarget.location)) rc.attack(curTarget.location);
         }
     }
 
     static boolean findLeader() throws GameActionException {
-        int thresholdDistSquared = 20;
+        int thresholdDistSquared = 200;
         int thresholdSwarmSize = 10;
         int best = 1000000000;
         int bestIndex = -1;
@@ -133,7 +92,7 @@ public class Sage extends RobotPlayer {
         int rad = rc.getType().actionRadiusSquared;
         for (RobotInfo rb : enemies) {
             if (rb.getType() == RobotType.SOLDIER || rb.getType() == RobotType.WATCHTOWER || rb.getType() == RobotType.SAGE) {
-                int d = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
+                int d = rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5 - rb.getHealth();
                 if(inRad){
                     if(rc.getLocation().distanceSquaredTo(rb.getLocation()) > rad) continue;
                 }
@@ -145,7 +104,7 @@ public class Sage extends RobotPlayer {
         }
         if (bst == null) {
             for (RobotInfo rb : enemies) {
-                int d = rb.getHealth() + rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5;
+                int d = rb.getLocation().distanceSquaredTo(rc.getLocation()) / 5 - rb.getHealth();
                 if(rb.getType() == RobotType.ARCHON) d -= 200;
                 if(inRad){
                     if(rc.getLocation().distanceSquaredTo(rb.getLocation()) > rad) continue;
@@ -161,14 +120,13 @@ public class Sage extends RobotPlayer {
 
     static void follower() throws GameActionException {
         SwarmInfo.get();
-        //randomCombat();
+        combat();
         if(SwarmInfo.index < 0 || SwarmInfo.index >= 30) {
             // Needs to find a swarm
             findLeader();
             scouting();
             return;
         }else{
-            combat();
             if(SwarmInfo.mode == 3) {
                 // Merging mode!
                 SwarmInfo.index = SwarmInfo.getNewLeader();
@@ -178,7 +136,9 @@ public class Sage extends RobotPlayer {
             // Go towards leader
             SwarmInfo.size++;
             SwarmInfo.write();
-            Navigation.goPSO(SwarmInfo.leader);
+            combat();
+            Navigation.goPSOSage(SwarmInfo.leader);
+            combat();
             rc.setIndicatorString("F OF " + SwarmInfo.leader.x + " " + SwarmInfo.leader.y + " with " + violationCounter + " of " + SwarmInfo.index);
             // Reset timer
             timer = 30;
