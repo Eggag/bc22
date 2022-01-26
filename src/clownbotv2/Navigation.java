@@ -129,21 +129,18 @@ public class Navigation extends RobotPlayer {
             double hp = (double)(uwu.getHealth()) / (double)(uwu.getType().getMaxHealth(1));
             if(rc.getLocation().distanceSquaredTo(uwu.location) > aRad){
                 if(newLoc.distanceSquaredTo(uwu.location) <= aRad){
-                    score += 10.0 * (1.0 - hp);
-                }
-                else{
-                    score -= 1.0 - hp;
+                    cur += 5.0 * (1.0 - hp);
                 }
             }
             else{
-                if(newLoc.distanceSquaredTo(uwu.location) > aRad){
-                    score += 3.0 * hp;
+                if(attackingUnit(uwu)) {
+                    cur -= 10.0 * hp / newLoc.distanceSquaredTo(uwu.location);
                 }
                 else{
-                    score -= 5.0 * hp;
+                    cur += 10.0 * hp / newLoc.distanceSquaredTo(uwu.location);
                 }
             }
-            score += cur * 2.0;
+            score += cur * 3.0;
         }
         return score;
     }

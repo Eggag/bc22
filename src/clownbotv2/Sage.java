@@ -54,6 +54,12 @@ public class Sage extends RobotPlayer {
     }
 
     static void combat() throws GameActionException{
+        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+        if(enemies.length > 5){
+            if(rc.canEnvision(AnomalyType.CHARGE)){
+                rc.envision(AnomalyType.CHARGE);
+            }
+        }
         RobotInfo curTarget = findNewTarget(true);
         if(curTarget != null){
             if(rc.canAttack(curTarget.location)) rc.attack(curTarget.location);

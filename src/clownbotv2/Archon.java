@@ -23,14 +23,16 @@ public class Archon extends RobotPlayer {
         int sageCnt = rc.readSharedArray(NUM_SAGE_IND);
         int soldierCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
         int labCnt = rc.readSharedArray(NUM_LAB_IND);
-        if(rt == RobotType.SOLDIER && soldierCnt > 15 && labCnt > 0){
-            if(sageCnt * 2 < soldierCnt){
-                return;
+        if(rc.getTeamLeadAmount(rc.getTeam()) < 500) {
+            if (rt == RobotType.SOLDIER && soldierCnt > 20 && labCnt > 0) {
+                if (sageCnt * 3 < soldierCnt) {
+                    return;
+                }
             }
-        }
-        if(rt == RobotType.SOLDIER && soldierCnt > 25 && labCnt > 0){
-            if(sageCnt * 2 < soldierCnt * 3){
-                return;
+            if (rt == RobotType.SOLDIER && soldierCnt > 40 && labCnt > 0) {
+                if (sageCnt * 2 < soldierCnt) {
+                    return;
+                }
             }
         }
         for (int i = 0; i < 8; i++) {
@@ -95,16 +97,13 @@ public class Archon extends RobotPlayer {
             return;
         }
         int labCnt = rc.readSharedArray(NUM_LAB_IND);
-        if(labCnt < 1 && rc.readSharedArray(NEED_LAB_IND) == 1){
-            return;
-        }
         int minerCnt = rc.readSharedArray(NUM_MINERS_IND);
         int soldiersCnt = rc.readSharedArray(NUM_SOLDIERS_IND);
         if(rc.getTeamGoldAmount(rc.getTeam()) >= 20){
             build(RobotType.SAGE);
             return;
         }
-        if(minerCnt > 10 && soldiersCnt > 10){
+        if(minerCnt > 10){
             RobotInfo[] fr = rc.senseNearbyRobots(1000, rc.getTeam());
             int f = 0;
             for(RobotInfo owo : fr){
@@ -115,11 +114,18 @@ public class Archon extends RobotPlayer {
             }
             if(f == 0) build(RobotType.BUILDER);
         }
+        if(labCnt < rc.getArchonCount() && rc.readSharedArray(NEED_LAB_IND) == 1){
+            return;
+        }
         double cnt = 1.0 * sumMiners / Math.max(1,recentLim);
         double recent = (double)(sumRecent) / Math.max(0.01,cnt);
         double longer = (double)(sumLonger) / Math.max(0.01,cnt);
         rc.setIndicatorString((int)recent + " " + (int)longer + " " + cnt + " " + rc.readSharedArray(AGGRO_IND));
-        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > 100 || soldiersCnt * 2 >= minerCnt))) build(RobotType.MINER);
+        int sz = rc.getMapHeight() * rc.getMapWidth();
+        int thr = 100;
+        if(sz > 1000) thr = 70;
+        if(sz > 2000) thr = 20;
+        if(cnt < 3 || (recent >= threshold() && (rc.getRoundNum() > thr || soldiersCnt * 2 >= minerCnt))) build(RobotType.MINER);
         else build(RobotType.SOLDIER);
     }
 
@@ -149,6 +155,7 @@ public class Archon extends RobotPlayer {
         rc.writeSharedArray(NUM_SOLDIERS_IND,0);
         rc.writeSharedArray(NUM_LAB_IND, 0);
         rc.writeSharedArray(NUM_SAGE_IND, 0);
+        rc.writeSharedArray(NEED_LAB_IND, 0);
     }
 
     static void updateArchonCount() throws GameActionException{

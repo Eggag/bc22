@@ -43,14 +43,14 @@ public class Builder extends RobotPlayer {
         }
         int sageCnt = rc.readSharedArray(NUM_SAGE_IND_2);
         int soldierCnt = rc.readSharedArray(NUM_SOLDIERS_IND_2);
-        if(sageCnt > 10 && sageCnt * 3 < soldierCnt) f = 0;
+        if(sageCnt > 10 && sageCnt * 3 < soldierCnt || rc.getTeamLeadAmount(rc.getTeam()) > 1000) f = 0;
         if(f == 0) {
             rc.writeSharedArray(NEED_LAB_IND, 1);
             Direction bst = null;
-            int d = 0;
+            int d = -100000;
             for (Direction dir : directions) {
                 if (rc.canBuildRobot(RobotType.LABORATORY, dir)) {
-                    int di = homeArchon.distanceSquaredTo(rc.getLocation().add(dir));
+                    int di = homeArchon.distanceSquaredTo(rc.getLocation().add(dir)) - 100 * rc.senseRubble(rc.getLocation().add(dir));
                     if (di > d) {
                         d = di;
                         bst = dir;
