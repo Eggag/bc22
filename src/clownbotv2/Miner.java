@@ -106,12 +106,9 @@ public class Miner extends RobotPlayer {
 
     static void tryRun() throws GameActionException {
         if(turnCount == 1) initialLoc = rc.getLocation();
+        if (!rc.isMovementReady()) return;
         enemies = rc.senseNearbyRobots(1000, rc.getTeam().opponent());
         Hotspot.addEnemies(enemies);
-        MapLocation midPoint = new MapLocation((rc.getMapWidth() / 2),(rc.getMapHeight() / 2));
-        MapLocation owo = rc.getLocation();
-        if(rc.getRoundNum() < 500 && rc.readSharedArray(AGGRO_IND) > 0 && owo.distanceSquaredTo(midPoint) <= owo.distanceSquaredTo(initialLoc)) Hotspot.addHotSpot(owo);
-        if (!rc.isMovementReady()) return;
 //        if(rc.getRoundNum() < 200 && Math.random() < 0.5) Hotspot.addHotSpot(rc.getLocation());
         int mn = 10000000;
         MapLocation danger = null;
